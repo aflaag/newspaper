@@ -31,13 +31,18 @@ LinePart* append_line_part(LinePart* curr_line_part, char* content) {
         return NULL;
     }
 
-    curr_line_part->next_line_part = (struct LinePart*) next_line_part;
+    if (curr_line_part == NULL) {
+        curr_line_part = next_line_part;
+    } else {
+        curr_line_part->next_line_part = (struct LinePart*) next_line_part;
+    }
 
     return next_line_part;
 }
 
 typedef struct {
-    struct LinePart* line_parts;
+    struct LinePart* line_parts_head;
+    struct LinePart* curr_line_part;
 
     struct Line* next_line;
 } Line;
@@ -50,7 +55,9 @@ Line* new_line(LinePart* line_part) {
         return NULL;
     }
 
-    new_line->line_parts = (struct LinePart*) line_part;
+    new_line->line_parts_head = (struct LinePart*) line_part;
+    new_line->curr_line_part = (struct LinePart*) line_part;
+
     new_line->next_line = NULL;
 
     return new_line;
@@ -63,7 +70,11 @@ Line* append_line(Line* curr_line, LinePart* line_part) {
         return NULL;
     }
 
-    curr_line->next_line = (struct Line*) next_line;
+    if (curr_line == NULL) {
+        curr_line = next_line;
+    } else {
+        curr_line->next_line = (struct Line*) next_line;
+    }
 
     return next_line;
 }
@@ -74,12 +85,13 @@ typedef struct {
     int w_col;
     int spacing;
 
-    struct Line* lines;
+    struct Line* lines_head;
+    struct Line* curr_line;
 
     struct Page* next_page;
 } Page;
 
-Page* new_page(int cols, int h_col, int w_col, int spacing) {
+Page* new_page(int cols, int h_col, int w_col, int spacing, Line* line) {
     Page* new_page;
     new_page = calloc(1, sizeof(Page));
 
@@ -91,21 +103,28 @@ Page* new_page(int cols, int h_col, int w_col, int spacing) {
     new_page->h_col = h_col;
     new_page->w_col = w_col;
     new_page->spacing = spacing;
-    new_page->lines = NULL;
+
+    new_page->lines_head = (struct Line*) line;
+    new_page->curr_line = (struct Line*) line;
+
     new_page->next_page = NULL;
 
     return new_page;
 }
 
-Page* append_page(Page* curr_page, int cols, int h_col, int w_col, int spacing) {
+Page* append_page(Page* curr_page, int cols, int h_col, int w_col, int spacing, Line* line) {
     Page* next_page;
-    next_page = new_page(cols, h_col, w_col, spacing);
+    next_page = new_page(cols, h_col, w_col, spacing, line);
 
     if (next_page == NULL) {
         return NULL;
     }
 
-    curr_page->next_page = (struct Page*) next_page;
+    if (curr_page == NULL) {
+        curr_page = next_page;
+    } else {
+        curr_page->next_page = (struct Page*) next_page;
+    }
 
     return next_page;
 }
@@ -123,11 +142,15 @@ int main(int argc, char* argv[]) {
     int spacing = 4;
 
     w_col = 4; // debug
-    Page* pages = new_page(cols, h_col, w_col, spacing);
+
     Line* curr_line = new_line(NULL);
+    Page* curr_page = new_page(cols, h_col, w_col, spacing, curr_line);
+
+    Page* fist_page = curr_page; // backup
 
     for (int i = 0; input_content[i] != '\0'; i += w_col) {
-        // char* line_col_buffer = calloc(w_col, sizeof(char));
+        // char* line_part_content = calloc(w_col + 1, sizeof(char));
+
         bool end = false;
         
         for (int j = i; j < i + w_col; j++) {
@@ -135,6 +158,7 @@ int main(int argc, char* argv[]) {
             
             if (curr_char != '\0') {
                 printf("%c", input_content[j]);
+                // strcat(line_part_content, curr_char);
             } else {
                 end = true;
 
@@ -149,8 +173,8 @@ int main(int argc, char* argv[]) {
         }
     }
 
-    free(pages);
-    free(curr_line);
+    // free(pages);
+    // free(curr_line);
 
     return 0;
 }
