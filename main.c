@@ -225,6 +225,7 @@ int main(int argc, char* argv[]) {
         }
 
         if (!lines_stop) {
+            // TODO: STA QUA IL PROBLEMA
             curr_page->curr_line = append_line(curr_page->curr_line, NULL); // è la PROSSIMA riga, andrebbe levata quando ricomincio
         } else {
             Line* a = curr_page->curr_line;
