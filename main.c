@@ -255,6 +255,7 @@ Page* build_pages(char* input_content, int cols, int h_col, int w_col) {
     int col_counter = 0;
 
     // TODO: si mangia l'ultima riga perche non controllo che i sia arrivato all'EOF
+    // TODO: CONTROLLARE CHE LA LARGHEZZA DELLA PAROLA VADA BENE ALTIRMENTI LOOP INFINITO
     for (int i = 0; input_content[i] != '\0'; i += w_col) {
         char* line_part_content = calloc(w_col + 1, sizeof(char));
 
