@@ -211,14 +211,25 @@ void string_replace(char* string, char target, char replacement) {
     }
 }
 
-bool read_line_col(char* input_content, char* line_chunk_content, int w_col, int i) {
-    for (int j = i; j < i + w_col; j++) {
+bool read_chunk(char* input_content, char* line_chunk_content, int w_col, int* base_idx) {
+    bool is_text_started = false;
+
+    int i = *base_idx;
+    int finish = i + w_col;
+
+    for (int j = i; j < finish; j++) {
         char curr_char = input_content[j];
         
         if (curr_char != '\0') {
-            // printf("%c", input_content[j]);
+            if ((curr_char == ' ' || curr_char == '\n') && !is_text_started) { // TODO: se sono due mesa che sta cosa non va bene
+                finish++;
+                *base_idx += 1;
+            } else {
+                // printf("%c", input_content[j]);
+                is_text_started = true;
 
-            line_chunk_content[j - i] = curr_char;
+                line_chunk_content[j - i - (finish - i - w_col)] = curr_char;
+            }
         } else {
             return true;
         }
@@ -270,7 +281,8 @@ Page* build_pages(char* input_content, int cols, int h_col, int w_col) {
     for (int i = 0; input_content[i] != '\0'; i += w_col) {
         char* line_chunk_content = calloc(w_col + 1, sizeof(char));
 
-        bool end = read_line_col(input_content, line_chunk_content, w_col, i);
+        bool end = read_cunk(input_content, line_chunk_content, w_col, &i);
+
 
         if (check_truncated_end(line_chunk_content, w_col, input_content[i + w_col])) {
             if (no_spaces(line_chunk_content, w_col)) {
@@ -284,6 +296,7 @@ Page* build_pages(char* input_content, int cols, int h_col, int w_col) {
             i -= truncated_chars;
         }
 
+        // printf("%s\n", line_chunk_content);
         // printf("\n");
 
         string_replace(line_chunk_content, '\n', ' '); // TODO: da levare obv
@@ -337,6 +350,7 @@ int main(int argc, char* argv[]) {
     char* input_content = "lorem ipsum dolor sit amet"; // TODO: FIXA PROBLEMA DELLE PAROLE PRECISE
     // char* input_content = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Quisque euismod mauris ac malesuada sagittis. Morbi imperdiet ullamcorper tortor, eget varius sem ultrices a. Nam molestie dignissim lectus, et dapibus nunc tristique in. Sed eget neque egestas, aliquam lacus non, rhoncus ex. Suspendisse metus orci, gravida eget gravida ullamcorper, accumsan dapibus justo. Donec elit libero, ullamcorper id interdum et, porttitor non metus. In ultrices non arcu tincidunt scelerisque. Morbi at lectus quis nunc faucibus mattis id et ex. Ut viverra nunc arcu, at mollis orci ultricies non. Etiam tempor euismod neque eget imperdiet. Fusce faucibus sem velit, at pellentesque odio sagittis vel. Duis hendrerit dui sed maximus suscipit. Praesent tristique quam erat, eu mollis ante malesuada a. Phasellus rutrum tempus lorem, vel vulputate ante lobortis in. Nam lacinia ut arcu vitae suscipit.\n\nMauris volutpat purus placerat lacus vestibulum, sit amet bibendum arcu tincidunt. Fusce volutpat orci in ex suscipit euismod. Donec mi nibh, blandit vitae ligula non, cursus fermentum dolor. Mauris sit amet venenatis nisi. Curabitur quis dolor at metus consectetur congue. Ut velit nunc, ultrices sed convallis eu, posuere a arcu. Vivamus tristique finibus sapien, vitae lacinia ante dapibus eget. Praesent libero nisl, efficitur vel ex in, semper tempor erat. Aliquam pharetra mi nec nisi varius, nec sollicitudin ligula pulvinar. Curabitur bibendum arcu quis erat tincidunt, sed tempus ex placerat. Donec ornare, tellus pulvinar pellentesque elementum, arcu ante pharetra metus, ut malesuada metus nibh ut orci. Aenean pulvinar nisi arcu, a pharetra mi ornare nec.";
     // char* input_content = "ciao a tutti sono il capobastone come va spero tutto bene, io sto molto bene mi sento veramente fortissimo ciao a tutti quanti.\n\nquesta e' una prova di paragrafo, speriamo non esploda tutto quanto.\n\nciao a tutti sono il capobastone come va spero tutto bene, io sto molto bene mi sento veramente fortissimo ciao a tutti quanti.\n\nquesto e' una prova di paragrafo, speriamo non esploda tutto quanto.";
+    // char* input_content = "questo e' un super test che mi serve per capire se quello che sto facendo sta effettivamente funzionando oppure non sta funzionando proprio assolutamente niente, ti prego funzona pls.\n\nah e questa e' una prova di paragrafo.";
 
     // TODO: grab this from argv
     // check if everything is != 0
@@ -346,7 +360,7 @@ int main(int argc, char* argv[]) {
     int spacing = 10;
 
     h_col = 4; w_col = 5; // debug
-    // h_col = 10; w_col = 15; // debug
+    // h_col = 7; w_col = 15; // debug
 
     Page* pages = build_pages(input_content, cols, h_col, w_col);
 
