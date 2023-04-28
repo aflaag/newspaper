@@ -190,9 +190,11 @@ void print_pages(Page* page, int spacing, char* pages_separator) {
         curr_line = curr_line->next_line;
     }
 
-    printf("%s", pages_separator);
+    if (page->next_page != NULL) {
+        printf("%s", pages_separator);
 
-    print_pages(page->next_page, spacing, pages_separator);
+        print_pages(page->next_page, spacing, pages_separator);
+    }
 }
 
 void string_replace(char* string, char target, char replacement) {
