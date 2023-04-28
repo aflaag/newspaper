@@ -225,6 +225,16 @@ bool read_line_col(char* input_content, char* line_part_content, int w_col, int 
     return false;
 }
 
+bool is_char(char character) {
+    return character != ' ' && character != '\n';
+}
+
+bool check_truncated_end(char* line_part_content, int w_col, char next_char) {
+    if (is_char(line_part_content[w_col - 1]) && is_char(next_char)) {
+        line_part_content[w_col - 1] = '!';
+    }
+}
+
 Page* build_pages(char* input_content, int cols, int h_col, int w_col) {
     Page* curr_page = new_page(cols, h_col, w_col, NULL);
     Page* first_page = curr_page; // backup
@@ -239,9 +249,13 @@ Page* build_pages(char* input_content, int cols, int h_col, int w_col) {
 
         bool end = read_line_col(input_content, line_part_content, w_col, i);
 
+        if (input_content[i + w_col] != '\0') {
+            bool truncated_end = check_truncated_end(line_part_content, w_col, input_content[i + w_col]);
+        }
+
         // printf("\n");
 
-        string_replace(line_part_content, '\n', ' ');
+        string_replace(line_part_content, '\n', ' '); // TODO: da levare obv
 
         if (!h_col_reached) {
             curr_page->curr_line = append_line(curr_page->curr_line, NULL);
