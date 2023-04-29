@@ -65,7 +65,7 @@ Page* append_page(Page* curr_page, int cols, int h_col, int w_col, Line* line) {
 }
 
 void advance_curr_line(Page* page) {
-    Line* curr_line = page->curr_line;
+    Line* curr_line = (Line*) page->curr_line;
 
     page->curr_line = curr_line->next_line;
 }
@@ -85,18 +85,18 @@ void print_pages(Page* page, int spacing, char* pages_separator) {
         return;
     }
 
-    Line* curr_line = page->lines_head;
+    Line* curr_line = (Line*) page->lines_head;
 
     while (curr_line != NULL) {
         print_line(curr_line, spacing);
 
-        curr_line = curr_line->next_line;
+        curr_line = (Line*) curr_line->next_line;
     }
 
     if (page->next_page != NULL) {
         printf("%s", pages_separator);
 
-        print_pages(page->next_page, spacing, pages_separator);
+        print_pages((Page*) page->next_page, spacing, pages_separator);
     }
 }
 
@@ -193,14 +193,14 @@ Page* build_pages(char* input_content, int cols, int h_col, int w_col) {
         // printf("%s\n", line_chunk_content);
 
         if (!h_col_reached) {
-            curr_page->curr_line = append_line(curr_page->curr_line, NULL);
+            curr_page->curr_line = (struct Line*) append_line((Line*) curr_page->curr_line, NULL);
 
             set_lines_head(curr_page);
         }
 
-        Line* curr_line = curr_page->curr_line;
+        Line* curr_line = (Line*) curr_page->curr_line;
 
-        curr_line->curr_line_chunk = append_line_chunk(curr_line->curr_line_chunk, line_chunk_content);
+        curr_line->curr_line_chunk = (struct LineChunk*) append_line_chunk((LineChunk*) curr_line->curr_line_chunk, line_chunk_content);
 
         set_line_chunks_head(curr_line);
 

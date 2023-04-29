@@ -59,7 +59,7 @@ void print_line(Line* line, int spacing) {
         return;
     }
 
-    LineChunk* curr_line_chunk = line->line_chunks_head;
+    LineChunk* curr_line_chunk = (LineChunk*) line->line_chunks_head;
 
     while (curr_line_chunk != NULL) {
         print_line_chunk(curr_line_chunk);
@@ -68,7 +68,7 @@ void print_line(Line* line, int spacing) {
             printf(" ");
         }
 
-        curr_line_chunk = curr_line_chunk->next_line_chunk;
+        curr_line_chunk = (LineChunk*) curr_line_chunk->next_line_chunk;
     }
 
     printf("\n");
