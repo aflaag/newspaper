@@ -240,12 +240,10 @@ int read_chunk(char* input_content, char* line_chunk_content, int w_col, int* ba
         if (curr_char == '\n' && next_char == '\n') {
             pad_string(line_chunk_content, j - finish + w_col, w_col, ' ');
 
-            char DEBUG = input_content[*base_idx];
             *base_idx += j - finish + 2;
-            DEBUG = input_content[*base_idx];
-            // *base_idx += 2;
 
-            return ENDED_PARAGRAPH;
+            return line_chunk_content[0] != ' ' ? ENDED_PARAGRAPH : NOT_ENDED_TEXT;
+            // return ENDED_PARAGRAPH;
         }
         
         // TODO: provare a vedere se il tutto funziona lasciando spazi multipli dentro una riga, sempre che io lo voglia fare
@@ -294,8 +292,7 @@ bool no_spaces(char* string, int len) {
     return true;
 }
 
-// https://en.wikipedia.org/wiki/Floor_and_ceiling_functions#Quotients
-int ceil_division(int x, int y) {
+int round_division(int x, int y) {
     return (x + (y / 2)) / y;
 }
 
@@ -437,7 +434,7 @@ void justify_string(char* string, int len) {
         return;
     }
 
-    int ratio = ceil_division(spaces_end, spaces_inside);
+    int ratio = round_division(spaces_end, spaces_inside);
 
     // printf("%d\n", ratio);
 
@@ -458,12 +455,22 @@ Page* build_pages(char* input_content, int cols, int h_col, int w_col) {
 
     // char fline_next_par[w_col + 1];
     // pad_string(fline_next_par, 0, w_col + 1, '\0');
-    // bool is_new_par = false;
+    bool is_new_par = false;
 
     for (int i = 0; input_content[i] != '\0'; i += w_col) {
         char* line_chunk_content = calloc(w_col + 1, sizeof(char));
 
-        int end_value = read_chunk(input_content, line_chunk_content, w_col, &i);
+        int end_value = NOT_ENDED_TEXT;
+
+        if (!is_new_par) {
+            end_value = read_chunk(input_content, line_chunk_content, w_col, &i);
+        } else {
+            is_new_par = false;
+
+            pad_string(line_chunk_content, 0, w_col, ' ');
+
+            i -= w_col;
+        }
 
         if (check_truncated_end(line_chunk_content, w_col, input_content[i + w_col])) {
             if (no_spaces(line_chunk_content, w_col)) {
@@ -481,6 +488,8 @@ Page* build_pages(char* input_content, int cols, int h_col, int w_col) {
 
         if (end_value != ENDED_PARAGRAPH) {
             justify_string(line_chunk_content, w_col);
+        } else {
+            is_new_par = true;
         }
 
         printf("%s\n", line_chunk_content);
