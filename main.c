@@ -311,7 +311,7 @@ void initialize(char queue[], int len) {
 }
 
 void enqueue(char queue[], int len, int* head, int* tail, char element) {
-    if (*tail >= 0 && *tail < len) {
+    if (*tail >= 0 && *tail < len - 1) {
         queue[*tail] = element;
 
         *tail += 1;
@@ -319,15 +319,15 @@ void enqueue(char queue[], int len, int* head, int* tail, char element) {
 }
 
 char dequeue(char queue[], int len, int* head, int* tail) {
-    if (*head >= *tail)
+    if (*head < *tail) {
+        char element = queue[*head];
 
-    char element = queue[*head];
+        queue[*head] = '\0';
 
-    queue[*head] = '\0';
+        *head += 1;
 
-    *head += 1;
-
-    return element;
+        return element;
+    }
 }
 
 void slide_characters(char* string, int len, int spaces_end, int ratio) {
@@ -338,23 +338,60 @@ void slide_characters(char* string, int len, int spaces_end, int ratio) {
 
     initialize(queue, len);
 
-    int curr_spaces = min(spaces_end, ratio); // TODO: forse questa cosa non serve all'inizio
-
-    while (curr_spaces > 0) {
-        enqueue(queue, len, &head, &tail);
-
-        curr_spaces--;
-    }
-
-    bool to_slide = false;
-
     for (int i = 1; i < len; i++) {
-        if (is_char(string[i]) && !is_char(string[i - 1])) {
-            to_slide = true;
-        }
+        char DEBUG = string[i];
+        if (tail != 0) {
+            if (is_char(string[i]) && !is_char(queue[tail - 1])) {
+                while (is_char(queue[head])) {
+                    enqueue(queue, len, &head, &tail, string[i]);
 
-        if (to_slide) {
+                    string[i] = dequeue(queue, len, &head, &tail);
 
+                    i++;
+                }
+
+                enqueue(queue, len, &head, &tail, string[i]);
+                string[i] = dequeue(queue, len, &head, &tail);
+                i++;
+                
+                int curr_spaces = min(spaces_end, ratio);
+
+                spaces_end -= curr_spaces;
+
+                while (curr_spaces > 0) {
+                    enqueue(queue, len, &head, &tail, string[i]);
+
+                    string[i] = ' ';
+
+                    curr_spaces--;
+
+                    i++;
+                }
+
+                i--;
+            } else {
+                enqueue(queue, len, &head, &tail, string[i]);
+
+                string[i] = dequeue(queue, len, &head, &tail);
+            }
+        } else {
+            if (is_char(string[i]) && !is_char(string[i - 1])) {
+                int curr_spaces = min(spaces_end, ratio);
+
+                spaces_end -= curr_spaces;
+
+                while (curr_spaces > 0) {
+                    enqueue(queue, len, &head, &tail, string[i]);
+
+                    string[i] = ' ';
+
+                    curr_spaces--;
+
+                    i++;
+                }
+
+                i--;
+            }
         }
     }
 }
@@ -367,24 +404,24 @@ void justify_string(char* string, int len) {
     }
 
     if (spaces_end == 0) {
-        printf("X X\n");
+        // printf("X X\n");
         return;
     }
 
     int spaces_inside = count_words(string, len) - 1;
 
-    printf("%d ", spaces_inside);
+    // printf("%d ", spaces_inside);
 
     // TODO: ricordati di scrivere che è garantito
     // che gli space chunks abbiano esattamente 1 spazio
     if (spaces_inside == 0) { // una sola parola
-        printf("X\n");
+        // printf("X\n");
         return;
     }
 
     int ratio = ceil_division(spaces_end, spaces_inside);
 
-    printf("%d\n", ratio);
+    // printf("%d\n", ratio);
 
     slide_characters(string, len, spaces_end, ratio);
 }
@@ -414,9 +451,11 @@ Page* build_pages(char* input_content, int cols, int h_col, int w_col) {
         string_replace(line_chunk_content, '\n', ' ');
 
         // printf("%s %d %d\n", line_chunk_content, strlen(line_chunk_content), w_col);
-        printf("%s ", line_chunk_content);
+        printf("%s\n", line_chunk_content);
 
         justify_string(line_chunk_content, w_col);
+
+        printf("%s\n", line_chunk_content);
 
         if (!h_col_reached) {
             curr_page->curr_line = append_line(curr_page->curr_line, NULL);
