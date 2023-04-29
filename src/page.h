@@ -16,28 +16,19 @@
 #define PAGE_H
 
 typedef struct {
-    // TODO: RIMUOVI STI TRE CHE NON LI USO MAI
-    int cols;
-    int h_col;
-    int w_col;
-
     struct Line* lines_head;
     struct Line* curr_line;
 
     struct Page* next_page;
 } Page;
 
-Page* new_page(int cols, int h_col, int w_col, Line* line) {
+Page* new_page(Line* line) {
     Page* new_page;
     new_page = calloc(1, sizeof(Page));
 
     if (new_page == NULL) {
         return NULL;
     }
-
-    new_page->cols = cols;
-    new_page->h_col = h_col;
-    new_page->w_col = w_col;
 
     new_page->lines_head = (struct Line*) line;
     new_page->curr_line = (struct Line*) line;
@@ -49,7 +40,7 @@ Page* new_page(int cols, int h_col, int w_col, Line* line) {
 
 Page* append_page(Page* curr_page, int cols, int h_col, int w_col, Line* line) {
     Page* next_page;
-    next_page = new_page(cols, h_col, w_col, line);
+    next_page = new_page(line);
 
     if (next_page == NULL) {
         return NULL;
@@ -80,7 +71,7 @@ void reset_lines_head(Page* page) {
     page->curr_line = page->lines_head;
 }
 
-void print_pages(Page* page, int spacing, char* pages_separator) {
+void print_pages(Page* page, int spacing, char* pages_separator, char spacing_char) {
     if (page == NULL) {
         return;
     }
@@ -88,7 +79,7 @@ void print_pages(Page* page, int spacing, char* pages_separator) {
     Line* curr_line = (Line*) page->lines_head;
 
     while (curr_line != NULL) {
-        print_line(curr_line, spacing);
+        print_line(curr_line, spacing, spacing_char);
 
         curr_line = (Line*) curr_line->next_line;
     }
@@ -96,14 +87,13 @@ void print_pages(Page* page, int spacing, char* pages_separator) {
     if (page->next_page != NULL) {
         printf("%s", pages_separator);
 
-        print_pages((Page*) page->next_page, spacing, pages_separator);
+        print_pages((Page*) page->next_page, spacing, pages_separator, spacing_char);
     }
 }
 
 int read_chunk(char* input_content, char* line_chunk_content, int w_col, int* base_idx) {
     bool is_text_started = false;
 
-    // int i = *base_idx;
     int finish = *base_idx + w_col;
 
     for (int j = *base_idx; j < finish; j++) {
@@ -116,17 +106,14 @@ int read_chunk(char* input_content, char* line_chunk_content, int w_col, int* ba
             *base_idx += j - finish + 2;
 
             return line_chunk_content[0] != ' ' ? ENDED_PARAGRAPH : NOT_ENDED_TEXT;
-            // return ENDED_PARAGRAPH;
         }
         
         // TODO: provare a vedere se il tutto funziona lasciando spazi multipli dentro una riga, sempre che io lo voglia fare
         if (curr_char != '\0') {
-            if ((!is_text_started && !is_char(curr_char)) || (is_text_started && !is_char(curr_char) && !is_char(next_char))) { // TODO: controlla \n\n
+            if ((!is_text_started && !is_char(curr_char)) || (is_text_started && !is_char(curr_char) && !is_char(next_char))) {
                 finish++;
-                // *base_idx++;
                 *base_idx += 1;
             } else {
-                // printf("%c", input_content[j]);
                 is_text_started = true;
 
                 line_chunk_content[j - finish + w_col] = curr_char; // j - i - (finish - i - w_col)
@@ -139,8 +126,10 @@ int read_chunk(char* input_content, char* line_chunk_content, int w_col, int* ba
     return NOT_ENDED_TEXT;
 }
 
+// TODO: dovrebbe prendere un puntatore a cui collegare le pagine finite
+// restituendo un intero per fare un po di error code dal chiamante
 Page* build_pages(char* input_content, int cols, int h_col, int w_col) {
-    Page* curr_page = new_page(cols, h_col, w_col, NULL);
+    Page* curr_page = new_page(NULL);
     Page* first_page = curr_page; // backup
 
     int line_counter = 0;
@@ -148,11 +137,6 @@ Page* build_pages(char* input_content, int cols, int h_col, int w_col) {
 
     int col_counter = 0;
 
-    // TODO: AGGIUNGERE RIGA VUOTA DOPO FINE PARAGRAFO
-    // TODO: ATTENZIONE, QUANDO IL PARAGRAFO FINISCE PRECISO LO STA FACENDO DA SOLO
-
-    // char fline_next_par[w_col + 1];
-    // pad_string(fline_next_par, 0, w_col + 1, '\0');
     bool is_new_par = false;
 
     for (int i = 0; input_content[i] != '\0'; i += w_col) {
@@ -180,17 +164,11 @@ Page* build_pages(char* input_content, int cols, int h_col, int w_col) {
 
         string_replace(line_chunk_content, '\n', ' ');
 
-        // printf("%s %d %d\n", line_chunk_content, strlen(line_chunk_content), w_col);
-
-        // printf("%s\n", line_chunk_content);
-
         if (end_value != ENDED_PARAGRAPH) {
             justify_string(line_chunk_content, w_col);
         } else {
             is_new_par = true;
         }
-
-        // printf("%s\n", line_chunk_content);
 
         if (!h_col_reached) {
             curr_page->curr_line = (struct Line*) append_line((Line*) curr_page->curr_line, NULL);

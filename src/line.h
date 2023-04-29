@@ -17,8 +17,7 @@ typedef struct {
 } Line;
 
 Line* new_line(LineChunk* line_chunk) {
-    Line* new_line;
-    new_line = calloc(1, sizeof(Line));
+    Line* new_line = calloc(1, sizeof(Line));
 
     if (new_line == NULL) {
         return NULL;
@@ -49,12 +48,12 @@ Line* append_line(Line* curr_line, LineChunk* line_chunk) {
 }
 
 void set_line_chunks_head(Line* line) {
-    if (line->line_chunks_head == NULL) {
+    if (line != NULL && line->line_chunks_head == NULL) {
         line->line_chunks_head = line->curr_line_chunk;
     }
 }
 
-void print_line(Line* line, int spacing) {
+void print_line(Line* line, int spacing, char spacing_char) {
     if (line == NULL) {
         return;
     }
@@ -65,7 +64,7 @@ void print_line(Line* line, int spacing) {
         print_line_chunk(curr_line_chunk);
 
         for (int i = 0; i < spacing; i++) {
-            printf(" ");
+            printf("%c", spacing_char);
         }
 
         curr_line_chunk = (LineChunk*) curr_line_chunk->next_line_chunk;
