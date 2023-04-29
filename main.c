@@ -7,6 +7,7 @@
 #define ENDED_TEXT 0
 #define NOT_ENDED_TEXT 1
 #define ENDED_PARAGRAPH 2
+#define FLINE_NEXT_PAR 3
 
 typedef struct {
     char* content;
@@ -240,7 +241,7 @@ int read_chunk(char* input_content, char* line_chunk_content, int w_col, int* ba
             pad_string(line_chunk_content, j - finish + w_col, w_col, ' ');
 
             char DEBUG = input_content[*base_idx];
-            *base_idx -= w_col - (j - finish + w_col) + 2;
+            *base_idx += j - finish + 2;
             DEBUG = input_content[*base_idx];
             // *base_idx += 2;
 
@@ -295,7 +296,7 @@ bool no_spaces(char* string, int len) {
 
 // https://en.wikipedia.org/wiki/Floor_and_ceiling_functions#Quotients
 int ceil_division(int x, int y) {
-    return (x + y - 1) / y;
+    return (x + (y / 2)) / y;
 }
 
 int count_words(char* string, int len) {
@@ -451,6 +452,13 @@ Page* build_pages(char* input_content, int cols, int h_col, int w_col) {
     bool h_col_reached = false;
 
     int col_counter = 0;
+
+    // TODO: AGGIUNGERE RIGA VUOTA DOPO FINE PARAGRAFO
+    // TODO: ATTENZIONE, QUANDO IL PARAGRAFO FINISCE PRECISO LO STA FACENDO DA SOLO
+
+    // char fline_next_par[w_col + 1];
+    // pad_string(fline_next_par, 0, w_col + 1, '\0');
+    // bool is_new_par = false;
 
     for (int i = 0; input_content[i] != '\0'; i += w_col) {
         char* line_chunk_content = calloc(w_col + 1, sizeof(char));
