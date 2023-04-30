@@ -4,7 +4,7 @@ todo desc
 
 ## TODO
 
-- [ ] line_chunk.h
+- [x] line_chunk.h
 - [x] line.h
 - [ ] main.c
 - [ ] page.h

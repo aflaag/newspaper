@@ -14,8 +14,7 @@ typedef struct {
 } LineChunk;
 
 LineChunk* new_line_chunk(char* content) {
-    LineChunk* new_line_chunk;
-    new_line_chunk = calloc(1, sizeof(LineChunk));
+    LineChunk* new_line_chunk = calloc(1, sizeof(LineChunk));
 
     if (new_line_chunk == NULL) {
         return NULL;

@@ -23,8 +23,7 @@ typedef struct {
 } Page;
 
 Page* new_page(Line* line) {
-    Page* new_page;
-    new_page = calloc(1, sizeof(Page));
+    Page* new_page = calloc(1, sizeof(Page));
 
     if (new_page == NULL) {
         return NULL;
@@ -39,8 +38,7 @@ Page* new_page(Line* line) {
 }
 
 Page* append_page(Page* curr_page, int cols, int h_col, int w_col, Line* line) {
-    Page* next_page;
-    next_page = new_page(line);
+    Page* next_page = new_page(line);
 
     if (next_page == NULL) {
         return NULL;
@@ -56,13 +54,17 @@ Page* append_page(Page* curr_page, int cols, int h_col, int w_col, Line* line) {
 }
 
 void advance_curr_line(Page* page) {
+    if (page == NULL) {
+        return;
+    }
+
     Line* curr_line = (Line*) page->curr_line;
 
     page->curr_line = curr_line->next_line;
 }
 
 void set_lines_head(Page* page) {
-    if (page->lines_head == NULL) {
+    if (page != NULL && page->lines_head == NULL) {
         page->lines_head = page->curr_line;
     }
 }
@@ -72,7 +74,7 @@ void reset_lines_head(Page* page) {
 }
 
 void print_pages(Page* page, int spacing, char* pages_separator, char spacing_char) {
-    if (page == NULL) {
+    if (page == NULL) { // TODO: testa che succede con pages_separator a stringa vuota oppure spacing_char == '\0'
         return;
     }
 
@@ -127,7 +129,7 @@ int read_chunk(char* input_content, char* line_chunk_content, int w_col, int* ba
 }
 
 // TODO: dovrebbe prendere un puntatore a cui collegare le pagine finite
-// restituendo un intero per fare un po di error code dal chiamante
+// restituendo un intero per fare un po di error handling da parte del chiamante
 Page* build_pages(char* input_content, int cols, int h_col, int w_col) {
     Page* curr_page = new_page(NULL);
     Page* first_page = curr_page; // backup
