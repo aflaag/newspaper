@@ -91,9 +91,7 @@ int min(int x, int y) {
 }
 
 int evaluate_curr_spaces(int spaces_end, int ratio) {
-    int minimum = min(spaces_end, ratio);
-
-    return ratio + 1 == spaces_end ? ratio + 1 : minimum;
+    return ratio + 1 == spaces_end ? ratio + 1 : min(spaces_end, ratio);
 }
 
 void enqueue(char queue[], int len, int* head, int* tail, char element) {
@@ -119,10 +117,6 @@ char dequeue(char queue[], int len, int* head, int* tail) {
 }
 
 void slide_characters(char* string, int len, int spaces_end, int ratio) {
-    if (!strcmp(string, "per una pagina di    ")) {
-        printf("gotcha");
-    }
-
     int head = 0;
     int tail = 0;
 
@@ -134,7 +128,6 @@ void slide_characters(char* string, int len, int spaces_end, int ratio) {
         char DEBUG = string[i];
         if (tail != 0) {
             if ((is_char(string[i]) && !is_char(queue[tail - 1])) || !is_char(queue[head])) {
-            // if (is_char(string[i]) && !is_char(queue[tail - 1])) {
                 while (is_char(queue[head])) {
                     enqueue(queue, len, &head, &tail, string[i]);
 
