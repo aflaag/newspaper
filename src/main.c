@@ -2,9 +2,6 @@
 
 #include "page.h"
 
-#define PAGE_SUCCESS 0
-#define INSUFFICIENT_WIDTH 1
-
 int main(int argc, char* argv[]) {
     // TODO: grab this from argv
     // check if everything is != 0
