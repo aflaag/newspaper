@@ -201,7 +201,9 @@ void justify_string(char* string, int len) {
 
     int ratio = round_division(spaces_end, spaces_inside);
 
-    // printf("%d\n", ratio);
+    if (ratio == 0) { // TODO: scrivere che questo è un fix che risolve quando il ratio fa 0
+        ratio = spaces_end;
+    }
 
     slide_characters(string, len, spaces_end, ratio);
 }

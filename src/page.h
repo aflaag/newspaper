@@ -154,6 +154,8 @@ Page* build_pages(char* input_content, int cols, int h_col, int w_col) {
             i -= w_col;
         }
 
+        printf("%s\n", line_chunk_content);
+
         if (check_truncated_end(line_chunk_content, w_col, input_content[i + w_col])) {
             if (no_spaces(line_chunk_content, w_col)) {
                 return curr_page; // TODO: free vari, inoltre questo dovrebbe essere NULL probabilmente
