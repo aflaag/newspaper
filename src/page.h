@@ -163,7 +163,9 @@ int build_pages(Page* curr_page, char* input_content, int cols, int h_col, int w
 
         if (check_truncated_end(line_chunk_content, w_col, input_content[i + w_col])) {
             if (no_spaces(line_chunk_content, w_col)) {
-                curr_page = first_page; // TODO: dovrei fare free di qualcosa che sta in memoria? forse del line_chunk_content
+                free(line_chunk_content);
+
+                curr_page = first_page;
                 
                 return INSUFFICIENT_WIDTH;
             }
@@ -225,10 +227,15 @@ int build_pages(Page* curr_page, char* input_content, int cols, int h_col, int w
 }
 
 void free_pages(Page* page) {
-    // TODO: this, recursively
     if (page == NULL) {
         return;
     }
+
+    free_pages((Page*) page->next_page);
+
+    free_lines((Line*) page->lines_head);
+
+    free(page);
 }
 
 #endif

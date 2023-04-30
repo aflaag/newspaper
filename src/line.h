@@ -70,4 +70,16 @@ void print_line(Line* line, int spacing, char spacing_char) {
     printf("\n");
 }
 
+void free_lines(Line* line) {
+    if (line == NULL) {
+        return;
+    }
+
+    free_lines((Line*) line->next_line);
+
+    free_line_chunks((LineChunk*) line->line_chunks_head);
+
+    free(line);
+}
+
 #endif

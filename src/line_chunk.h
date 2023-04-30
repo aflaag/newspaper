@@ -47,7 +47,21 @@ void print_line_chunk(LineChunk* line_chunk) {
         return;
     }
 
-    printf("%s", line_chunk->content);
+    if (line_chunk->content != NULL) {
+        printf("%s", line_chunk->content);
+    }
+}
+
+void free_line_chunks(LineChunk* line_chunk) {
+    if (line_chunk == NULL) {
+        return;
+    }
+
+    free_line_chunks((LineChunk*) line_chunk->next_line_chunk);
+
+    free(line_chunk->content);
+
+    free(line_chunk);
 }
 
 #endif
