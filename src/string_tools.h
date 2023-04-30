@@ -119,7 +119,6 @@ void slide_characters(char* string, int len, int spaces_end, int ratio) {
     pad_string(queue, 0, len, '\0');
 
     for (int i = 1; i < len; i++) {
-        char DEBUG = string[i];
         if (tail != 0) {
             if (is_char(string[i]) && !is_char(queue[tail - 1])) {
                 while (is_char(queue[head])) {
@@ -200,7 +199,7 @@ void justify_string(char* string, int len) {
     int ratio = round_division(spaces_end, spaces_inside);
 
     if (ratio == 0) { // TODO: scrivere che questo è un fix che risolve quando il ratio fa 0
-        ratio = spaces_end;
+        ratio = 1;
     }
 
     slide_characters(string, len, spaces_end, ratio);

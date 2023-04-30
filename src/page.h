@@ -7,10 +7,12 @@
 #include "line.h"
 #include "string_tools.h"
 
-#define ENDED_TEXT 0
-#define NOT_ENDED_TEXT 1
+#define NOT_ENDED_TEXT 0
+#define ENDED_TEXT 1
 #define ENDED_PARAGRAPH 2
-#define FLINE_NEXT_PAR 3
+
+#define PAGE_SUCCESS 0
+#define INSUFFICIENT_WIDTH 1
 
 #ifndef PAGE_H
 #define PAGE_H
@@ -70,6 +72,10 @@ void set_lines_head(Page* page) {
 }
 
 void reset_lines_head(Page* page) {
+    if (page == NULL) {
+        return;
+    }
+
     page->curr_line = page->lines_head;
 }
 
@@ -130,8 +136,7 @@ int read_chunk(char* input_content, char* line_chunk_content, int w_col, int* ba
 
 // TODO: dovrebbe prendere un puntatore a cui collegare le pagine finite
 // restituendo un intero per fare un po di error handling da parte del chiamante
-Page* build_pages(char* input_content, int cols, int h_col, int w_col) {
-    Page* curr_page = new_page(NULL);
+int build_pages(Page* curr_page, char* input_content, int cols, int h_col, int w_col) {
     Page* first_page = curr_page; // backup
 
     int line_counter = 0;
@@ -156,11 +161,11 @@ Page* build_pages(char* input_content, int cols, int h_col, int w_col) {
             i -= w_col;
         }
 
-        printf("%s\n", line_chunk_content);
-
         if (check_truncated_end(line_chunk_content, w_col, input_content[i + w_col])) {
             if (no_spaces(line_chunk_content, w_col)) {
-                return curr_page; // TODO: free vari, inoltre questo dovrebbe essere NULL probabilmente
+                curr_page = first_page; // TODO: dovrei fare free di qualcosa che sta in memoria? forse del line_chunk_content
+                
+                return INSUFFICIENT_WIDTH;
             }
 
             i -= replace_truncated_chars(line_chunk_content, w_col);
@@ -214,7 +219,16 @@ Page* build_pages(char* input_content, int cols, int h_col, int w_col) {
         }
     }
 
-    return first_page;
+    curr_page = first_page;
+
+    return PAGE_SUCCESS;
+}
+
+void free_pages(Page* page) {
+    // TODO: this, recursively
+    if (page == NULL) {
+        return;
+    }
 }
 
 #endif

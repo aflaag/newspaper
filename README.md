@@ -10,6 +10,7 @@ todo desc
 - [ ] page.h
 - [ ] string_tools.h
 
+- capire se è possibile creare delle switchable shared constants
 - controllare che l'input non sia NULL in tutte le funzioni
     - gestire gli errori restituendo interi al posto dei valori, per i codici di errore
 - fixa il bug nel print (non ricordo che voleva dire questa cosa, e se ho capito che vuol dire l'ho fixato)
