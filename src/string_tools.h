@@ -90,6 +90,12 @@ int min(int x, int y) {
     return (x < y) ? x : y;
 }
 
+int evaluate_curr_spaces(int spaces_end, int ratio) {
+    int minimum = min(spaces_end, ratio);
+
+    return ratio + 1 == spaces_end ? ratio + 1 : minimum;
+}
+
 void enqueue(char queue[], int len, int* head, int* tail, char element) {
     if (*tail >= 0 && *tail < len - 1) {
         queue[*tail] = element;
@@ -99,7 +105,7 @@ void enqueue(char queue[], int len, int* head, int* tail, char element) {
 }
 
 char dequeue(char queue[], int len, int* head, int* tail) {
-    if (*head < *tail) {
+    if (*head < *tail) { // TODO: avrebbe comunque senso mettere i controlli anche qui though
         char element = queue[*head];
 
         queue[*head] = '\0';
@@ -107,10 +113,16 @@ char dequeue(char queue[], int len, int* head, int* tail) {
         *head += 1;
 
         return element;
+    } else {
+        return '\0';
     }
 }
 
 void slide_characters(char* string, int len, int spaces_end, int ratio) {
+    if (!strcmp(string, "per una pagina di    ")) {
+        printf("gotcha");
+    }
+
     int head = 0;
     int tail = 0;
 
@@ -119,8 +131,10 @@ void slide_characters(char* string, int len, int spaces_end, int ratio) {
     pad_string(queue, 0, len, '\0');
 
     for (int i = 1; i < len; i++) {
+        char DEBUG = string[i];
         if (tail != 0) {
-            if (is_char(string[i]) && !is_char(queue[tail - 1])) {
+            if ((is_char(string[i]) && !is_char(queue[tail - 1])) || !is_char(queue[head])) {
+            // if (is_char(string[i]) && !is_char(queue[tail - 1])) {
                 while (is_char(queue[head])) {
                     enqueue(queue, len, &head, &tail, string[i]);
 
@@ -133,7 +147,7 @@ void slide_characters(char* string, int len, int spaces_end, int ratio) {
                 string[i] = dequeue(queue, len, &head, &tail);
                 i++;
                 
-                int curr_spaces = min(spaces_end, ratio);
+                int curr_spaces = evaluate_curr_spaces(spaces_end, ratio);
 
                 spaces_end -= curr_spaces;
 
@@ -155,7 +169,7 @@ void slide_characters(char* string, int len, int spaces_end, int ratio) {
             }
         } else {
             if (is_char(string[i]) && !is_char(string[i - 1])) {
-                int curr_spaces = min(spaces_end, ratio);
+                int curr_spaces = evaluate_curr_spaces(spaces_end, ratio);
 
                 spaces_end -= curr_spaces;
 
