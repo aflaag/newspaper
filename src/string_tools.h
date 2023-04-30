@@ -184,7 +184,6 @@ void justify_string(char* string, int len) {
     }
 
     if (spaces_end == 0) {
-        // printf("X X\n");
         return;
     }
 
@@ -195,7 +194,6 @@ void justify_string(char* string, int len) {
     // TODO: ricordati di scrivere che è garantito
     // che gli space chunks abbiano esattamente 1 spazio
     if (spaces_inside == 0) { // una sola parola
-        // printf("X\n");
         return;
     }
 
