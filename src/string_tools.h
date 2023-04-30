@@ -90,8 +90,8 @@ int min(int x, int y) {
     return (x < y) ? x : y;
 }
 
-int evaluate_curr_spaces(int spaces_end, int ratio) {
-    return ratio + 1 == spaces_end ? ratio + 1 : min(spaces_end, ratio);
+int evaluate_curr_spaces(int spaces_end, int spaces_inside, int spaces_done, int ratio) {
+    return ratio + 1 == spaces_end && spaces_done + 1 == spaces_inside ? ratio + 1 : min(spaces_end, ratio);
 }
 
 void enqueue(char queue[], int len, int* head, int* tail, char element) {
@@ -116,13 +116,15 @@ char dequeue(char queue[], int len, int* head, int* tail) {
     }
 }
 
-void slide_characters(char* string, int len, int spaces_end, int ratio) {
+void slide_characters(char* string, int len, int spaces_end, int spaces_inside, int ratio) {
     int head = 0;
     int tail = 0;
 
     char queue[len];
 
     pad_string(queue, 0, len, '\0');
+
+    int spaces_done = 0;
 
     for (int i = 1; i < len; i++) {
         char DEBUG = string[i];
@@ -140,7 +142,7 @@ void slide_characters(char* string, int len, int spaces_end, int ratio) {
                 string[i] = dequeue(queue, len, &head, &tail);
                 i++;
                 
-                int curr_spaces = evaluate_curr_spaces(spaces_end, ratio);
+                int curr_spaces = evaluate_curr_spaces(spaces_end, spaces_inside, spaces_done, ratio);
 
                 spaces_end -= curr_spaces;
 
@@ -153,6 +155,8 @@ void slide_characters(char* string, int len, int spaces_end, int ratio) {
 
                     i++;
                 }
+
+                spaces_done++;
 
                 i--;
             } else {
@@ -162,7 +166,7 @@ void slide_characters(char* string, int len, int spaces_end, int ratio) {
             }
         } else {
             if (is_char(string[i]) && !is_char(string[i - 1])) {
-                int curr_spaces = evaluate_curr_spaces(spaces_end, ratio);
+                int curr_spaces = evaluate_curr_spaces(spaces_end, spaces_inside, spaces_done, ratio);
 
                 spaces_end -= curr_spaces;
 
@@ -175,6 +179,8 @@ void slide_characters(char* string, int len, int spaces_end, int ratio) {
 
                     i++;
                 }
+
+                spaces_done++;
 
                 i--;
             }
@@ -209,7 +215,7 @@ void justify_string(char* string, int len) {
         ratio = 1;
     }
 
-    slide_characters(string, len, spaces_end, ratio);
+    slide_characters(string, len, spaces_end, spaces_inside, ratio);
 }
 
 #endif
