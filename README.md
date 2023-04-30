@@ -4,11 +4,15 @@ todo desc
 
 ## TODO
 
+### Checked files
+
 - [x] line_chunk.h
 - [x] line.h
 - [ ] main.c
 - [ ] page.h
 - [ ] string_tools.h
+
+### List
 
 - capire se è possibile creare delle switchable shared constants
 - controllare che l'input non sia NULL in tutte le funzioni
