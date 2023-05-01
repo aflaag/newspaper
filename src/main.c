@@ -22,17 +22,26 @@ int main(int argc, char* argv[]) {
     // char* input_content = "ciao a tutti sono il capobastone come va spero tutto bene, io sto molto bene      mi      sento veramente fortissimo ciao a tutti.       \n\n      questa e' una prova di paragrafo, speriamo non esploda tutto quanto.\n\nciao a tutti sono il capobastone come va spero tutto bene, io sto molto bene mi sento veramente fortissimo ciao a tutti quanti.      \n\n      questo e' una prova di paragrafo, speriamo non esploda tutto qua    nto.";
     // char* input_content = "questo e' un super test che mi serve per capire se quello che sto facendo sta effettivamente funzionando oppure non sta funzionando proprio assolutamente niente, ti prego funzona pls.\n\nah e questa e' una prova di paragrafo.";
     // char* input_content = "a                        b";
-    char* input_content = "a x x b x x c c iaone come stae"; h_col = 7; w_col = 18; // TODO: controlla quando arriva all'ultimo (devo pensare a com'è fatto il test)
+    // char* input_content = "a x x b x x c c iaone come stae"; h_col = 7; w_col = 18; // TODO: controlla quando arriva all'ultimo (devo pensare a com'è fatto il test)
+
+    FILE* input_file = fopen("lorem_long.txt", "r"); // COMPILATION
+    // FILE* input_file = fopen("../lorem_long.txt", "r"); // DEBUG
+
+    if (input_file == NULL) {
+        fprintf(stderr, "FILE: TODO ERROR HANDLING\n");
+        
+        return -1;
+    }
 
     Page* pages = new_page(NULL);
 
-    int exit_code = build_pages(pages, input_content, cols, h_col, w_col);
+    int exit_code = build_pages(pages, input_file, cols, h_col, w_col);
 
     switch (exit_code)  {
         case INSUFFICIENT_WIDTH:
-            fprintf(stderr, "TODO ERROR HANDLING\n");
+            fprintf(stderr, "WIDTH: TODO ERROR HANDLING\n");
 
-            break;
+            // break;
         case PAGE_SUCCESS:
             printf("\nbegin---\n\n");
 
@@ -44,7 +53,9 @@ int main(int argc, char* argv[]) {
             break;
     }
 
-    free_pages(pages);
+    free_pages(pages); // TODO: dovrebbe funzionare bene, però debugga just to make sure, anche il free di line_chunk_content in page.h
+
+    fclose(input_file); // TODO: gestire l'errore (che me invento?!)
 
     return 0;
 }

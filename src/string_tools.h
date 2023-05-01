@@ -22,7 +22,7 @@ void string_replace(char* string, char target, char replacement) {
 }
 
 bool is_char(char character) {
-    return character != ' ' && character != '\n' && character != '\0';
+    return character != ' ' && character != '\n' && character != '\0' && character != EOF;
 }
 
 void pad_string(char* string, int start, int len, char character) {

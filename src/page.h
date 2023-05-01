@@ -99,25 +99,36 @@ void print_pages(Page* page, int spacing, char* pages_separator, char spacing_ch
     }
 }
 
-int read_chunk(char* input_content, char* line_chunk_content, int w_col, int* base_idx) {
+int read_chunk(FILE* input_file, char* line_chunk_content, int w_col, long* base_idx) {
     bool is_text_started = false;
 
     int finish = *base_idx + w_col;
 
     for (int j = *base_idx; j < finish; j++) {
-        char curr_char = input_content[j];
-        char next_char = input_content[j + 1];
+        // char curr_char = input_file[j];
+        // char next_char = input_file[j + 1];
+
+        // long curr_pos = ftell(input_file);
+
+        char curr_char = fgetc(input_file);
+
+        long next_pos = ftell(input_file);
+
+        char next_char = fgetc(input_file);
+
+        fseek(input_file, next_pos, SEEK_SET);
 
         if (curr_char == '\n' && next_char == '\n') {
             pad_string(line_chunk_content, j - finish + w_col, w_col, ' ');
 
-            *base_idx += j - finish + 2;
+            *base_idx += (long) j - (long) finish + 2;
 
             return line_chunk_content[0] != ' ' ? ENDED_PARAGRAPH : NOT_ENDED_TEXT;
         }
         
         // TODO: provare a vedere se il tutto funziona lasciando spazi multipli dentro una riga, sempre che io lo voglia fare
-        if (curr_char != '\0') {
+        // if (!feof(input_file)) {
+        if (curr_char != EOF) {
             if ((!is_text_started && !is_char(curr_char)) || (is_text_started && !is_char(curr_char) && !is_char(next_char))) {
                 finish++;
                 *base_idx += 1;
@@ -129,6 +140,8 @@ int read_chunk(char* input_content, char* line_chunk_content, int w_col, int* ba
         } else {
             return ENDED_TEXT;
         }
+
+        // fseek(input_file, next_pos, SEEK_SET);
     }
 
     return NOT_ENDED_TEXT;
@@ -136,7 +149,7 @@ int read_chunk(char* input_content, char* line_chunk_content, int w_col, int* ba
 
 // TODO: dovrebbe prendere un puntatore a cui collegare le pagine finite
 // restituendo un intero per fare un po di error handling da parte del chiamante
-int build_pages(Page* curr_page, char* input_content, int cols, int h_col, int w_col) {
+int build_pages(Page* curr_page, FILE* input_file, int cols, int h_col, int w_col) {
     Page* first_page = curr_page; // backup
 
     int line_counter = 0;
@@ -146,31 +159,42 @@ int build_pages(Page* curr_page, char* input_content, int cols, int h_col, int w
 
     bool is_new_par = false;
 
-    for (int i = 0; input_content[i] != '\0'; i += w_col) {
+    // for (int i = 0; feof(input_file) != 0; i += w_col) {
+    while (!feof(input_file)) {
+        long curr_pos = ftell(input_file);
+
         char* line_chunk_content = calloc(w_col + 1, sizeof(char));
 
         int end_value = NOT_ENDED_TEXT;
 
         if (!is_new_par) {
-            end_value = read_chunk(input_content, line_chunk_content, w_col, &i);
+            // end_value = read_chunk(input_file, line_chunk_content, w_col, &i);
+            end_value = read_chunk(input_file, line_chunk_content, w_col, &curr_pos);
         } else {
             is_new_par = false;
 
             pad_string(line_chunk_content, 0, w_col, ' ');
 
-            i -= w_col;
+            // i -= w_col;
+            curr_pos -= w_col;
         }
 
-        if (check_truncated_end(line_chunk_content, w_col, input_content[i + w_col])) {
+        fseek(input_file, curr_pos + w_col, SEEK_SET);
+
+        char fchar_next_line = fgetc(input_file);
+
+        fseek(input_file, curr_pos, SEEK_SET);
+
+        if (check_truncated_end(line_chunk_content, w_col, fchar_next_line)) {
             if (no_spaces(line_chunk_content, w_col)) {
-                free(line_chunk_content);
+                free(line_chunk_content); // TODO: debuggare anche questo
 
                 curr_page = first_page;
                 
                 return INSUFFICIENT_WIDTH;
             }
 
-            i -= replace_truncated_chars(line_chunk_content, w_col);
+            curr_pos -= replace_truncated_chars(line_chunk_content, w_col);
         }
 
         string_replace(line_chunk_content, '\n', ' ');
@@ -219,6 +243,8 @@ int build_pages(Page* curr_page, char* input_content, int cols, int h_col, int w
 
             col_counter = 0;
         }
+
+        fseek(input_file, curr_pos + w_col, SEEK_SET);
     }
 
     curr_page = first_page;
