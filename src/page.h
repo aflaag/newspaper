@@ -10,6 +10,7 @@
 #define NOT_ENDED_TEXT 0
 #define ENDED_TEXT 1
 #define ENDED_PARAGRAPH 2
+#define REALLOC_ERROR 3
 
 #define PAGE_SUCCESS 0
 #define INSUFFICIENT_WIDTH 1
@@ -39,7 +40,7 @@ Page* new_page(Line* line) {
     return new_page;
 }
 
-Page* append_page(Page* curr_page, int cols, int h_col, int w_col, Line* line) {
+Page* append_page(Page* curr_page, Line* line) {
     Page* next_page = new_page(line);
 
     if (next_page == NULL) {
@@ -99,12 +100,14 @@ void print_pages(Page* page, int spacing, char* pages_separator, char spacing_ch
     }
 }
 
-int read_chunk(FILE* input_file, char* line_chunk_content, int w_col, long* base_idx) {
+int read_chunk(FILE* input_file, char* line_chunk_content, int w_col, long* base_idx, int* unicode_offset) {
     bool is_text_started = false;
 
-    int finish = *base_idx + w_col;
+    // int finish = *base_idx + w_col;
 
-    for (int j = *base_idx; j < finish; j++) {
+    int invalid_offset = 0;
+
+    for (int j = 0; j < w_col + invalid_offset + *unicode_offset; j++) {
         char curr_char = fgetc(input_file);
 
         long next_pos = ftell(input_file);
@@ -112,9 +115,10 @@ int read_chunk(FILE* input_file, char* line_chunk_content, int w_col, long* base
         char next_char = fgetc(input_file);
 
         if (curr_char == '\n' && next_char == '\n') {
-            pad_string(line_chunk_content, j - finish + w_col, w_col, ' ');
+            pad_string(line_chunk_content, j - invalid_offset, w_col + *unicode_offset, ' ');
 
-            *base_idx += (long) j - (long) finish + 2;
+            // *base_idx += (long) j - (long) finish + 2;
+            *base_idx += j - (w_col + invalid_offset + *unicode_offset) + 2;
 
             return line_chunk_content[0] != ' ' ? ENDED_PARAGRAPH : NOT_ENDED_TEXT;
         }
@@ -122,12 +126,28 @@ int read_chunk(FILE* input_file, char* line_chunk_content, int w_col, long* base
         // TODO: provare a vedere se il tutto funziona lasciando spazi multipli dentro una riga, sempre che io lo voglia fare
         if (curr_char != EOF) {
             if ((!is_text_started && !is_char(curr_char)) || (is_text_started && !is_char(curr_char) && !is_char(next_char))) {
-                finish++;
+                invalid_offset++;
                 *base_idx += 1;
             } else {
                 is_text_started = true;
 
-                line_chunk_content[j - finish + w_col] = curr_char; // j - i - (finish - i - w_col)
+                line_chunk_content[j - invalid_offset] = curr_char; // j - i - (finish - i - w_col)
+
+                if (is_utf8((unsigned char) curr_char)) {
+                    *unicode_offset += 1;
+                    // *base_idx += 1;
+                    // j--;
+
+                    char* larger_chunk = realloc(line_chunk_content, w_col + *unicode_offset + 1);
+
+                    if (larger_chunk == NULL) {
+                        return REALLOC_ERROR; // TODO: HANDLE THIS
+                    }
+
+                    larger_chunk[w_col + *unicode_offset] = '\0';
+
+                    line_chunk_content = larger_chunk;
+                }
             }
         } else {
             return ENDED_TEXT;
@@ -155,9 +175,10 @@ int build_pages(FILE* input_file, Page* curr_page, int cols, int h_col, int w_co
         char* line_chunk_content = calloc(w_col + 1, sizeof(char));
 
         int end_value = NOT_ENDED_TEXT;
+        int unicode_offset = 0;
 
         if (!is_new_par) {
-            end_value = read_chunk(input_file, line_chunk_content, w_col, &curr_pos);
+            end_value = read_chunk(input_file, line_chunk_content, w_col, &curr_pos, &unicode_offset);
         } else {
             is_new_par = false;
 
@@ -165,6 +186,8 @@ int build_pages(FILE* input_file, Page* curr_page, int cols, int h_col, int w_co
 
             curr_pos -= w_col;
         }
+
+        w_col += unicode_offset;
 
         fseek(input_file, curr_pos + w_col, SEEK_SET);
 
@@ -224,7 +247,7 @@ int build_pages(FILE* input_file, Page* curr_page, int cols, int h_col, int w_co
         }
 
         if (col_counter == cols) {
-            curr_page = append_page(curr_page, cols, h_col, w_col, NULL);
+            curr_page = append_page(curr_page, NULL);
 
             h_col_reached = false;
 
@@ -232,6 +255,8 @@ int build_pages(FILE* input_file, Page* curr_page, int cols, int h_col, int w_co
         }
 
         fseek(input_file, curr_pos + w_col, SEEK_SET);
+
+        w_col -= unicode_offset;
     }
 
     curr_page = first_page;

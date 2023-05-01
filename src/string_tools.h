@@ -22,8 +22,8 @@ void string_replace(char* string, char target, char replacement) {
 }
 
 bool is_char(char character) {
-    // return character != ' ' && character != '\n' && character != '\0' && character != EOF && character != '\t';
-    return (int) character > 32;
+    return character != ' ' && character != '\n' && character != '\0' && character != EOF && character != '\t';
+    // return character > 32;
 }
 
 void pad_string(char* string, int start, int len, char character) {
@@ -32,8 +32,12 @@ void pad_string(char* string, int start, int len, char character) {
     }
 }
 
+bool is_utf8(unsigned char character) {
+    return character >> 6 == 0b10;
+}
+
 bool check_truncated_end(char* line_chunk_content, int w_col, char next_char) {
-    return is_char(line_chunk_content[w_col - 1]) && is_char(next_char);
+    return is_char(line_chunk_content[w_col - 1]) && (is_char(next_char) || is_utf8(next_char));
 }
 
 int replace_truncated_chars(char* line_chunk_content, int w_col) {
