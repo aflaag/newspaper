@@ -35,9 +35,7 @@ Line* append_line(Line* curr_line, LineChunk* line_chunk) {
         return NULL;
     }
 
-    if (curr_line == NULL) {
-        curr_line = next_line;
-    } else {
+    if (curr_line != NULL) {
         curr_line->next_line = (struct Line*) next_line;
     }
 

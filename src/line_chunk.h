@@ -33,9 +33,7 @@ LineChunk* append_line_chunk(LineChunk* curr_line_chunk, char* content) {
         return NULL;
     }
 
-    if (curr_line_chunk == NULL) {
-        curr_line_chunk = next_line_chunk;
-    } else {
+    if (curr_line_chunk != NULL) {
         curr_line_chunk->next_line_chunk = (struct LineChunk*) next_line_chunk;
     }
 

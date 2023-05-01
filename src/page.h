@@ -10,10 +10,10 @@
 #define NOT_ENDED_TEXT 0
 #define ENDED_TEXT 1
 #define ENDED_PARAGRAPH 2
-#define REALLOC_ERROR 3
 
-#define PAGE_SUCCESS 0
-#define INSUFFICIENT_WIDTH 1
+#define PAGE_SUCCESS -1
+#define INSUFFICIENT_WIDTH -2
+#define REALLOC_ERROR -3
 
 #ifndef PAGE_H
 #define PAGE_H
@@ -47,9 +47,7 @@ Page* append_page(Page* curr_page, Line* line) {
         return NULL;
     }
 
-    if (curr_page == NULL) {
-        curr_page = next_page;
-    } else {
+    if (curr_page != NULL) {
         curr_page->next_page = (struct Page*) next_page;
     }
 
@@ -195,6 +193,8 @@ int build_pages(FILE* input_file, Page* curr_page, int cols, int h_col, int w_co
 
         fseek(input_file, curr_pos, SEEK_SET);
 
+        int w_col_backup = w_col;
+
         if (check_truncated_end(line_chunk_content, w_col, fchar_next_line)) {
             if (no_spaces(line_chunk_content, w_col)) {
                 free(line_chunk_content); // TODO: debuggare anche questo
@@ -204,16 +204,32 @@ int build_pages(FILE* input_file, Page* curr_page, int cols, int h_col, int w_co
                 return INSUFFICIENT_WIDTH;
             }
 
-            curr_pos -= replace_truncated_chars(line_chunk_content, w_col);
+            curr_pos -= replace_truncated_chars(line_chunk_content, &w_col);
+
+            line_chunk_content = truncate_string(line_chunk_content, w_col);
+
+            if (line_chunk_content == NULL) {
+                return REALLOC_ERROR;
+            }
+            
+            if (w_col != w_col_backup) {
+                printf("a");
+            }
+
+            // w_col = w_col_backup;
         }
 
         string_replace(line_chunk_content, '\n', ' '); // TODO: attenzione che vanno ignorati anche altri caratteri strani tipo \t e non so se c'è altro
+
+        printf("%s\n", line_chunk_content);
 
         if (end_value != ENDED_PARAGRAPH) {
             justify_string(line_chunk_content, w_col);
         } else {
             is_new_par = true;
         }
+
+        w_col = w_col_backup;
 
         if (!h_col_reached) {
             curr_page->curr_line = (struct Line*) append_line((Line*) curr_page->curr_line, NULL);

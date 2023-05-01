@@ -40,10 +40,40 @@ bool check_truncated_end(char* line_chunk_content, int w_col, char next_char) {
     return is_char(line_chunk_content[w_col - 1]) && (is_char(next_char) || is_utf8(next_char));
 }
 
-int replace_truncated_chars(char* line_chunk_content, int w_col) {
+char* truncate_string(char* string, int new_size) {
+    int original_size = strlen(string);
+
+    if (original_size <= new_size) {
+        return string;
+    }
+
+    int amount = original_size - new_size;
+
+    if (amount > original_size) {
+        return string;
+    }
+
+    char* truncated_string = calloc(new_size + 1, sizeof(char));
+
+    if (truncated_string == NULL) {
+        return string;
+    }
+
+    strncpy(truncated_string, string, new_size);
+
+    free(string);
+
+    return truncated_string;
+}
+
+int replace_truncated_chars(char* line_chunk_content, int* w_col) {
     int truncated_chars = 0;
 
-    for (int i = w_col - 1; is_char(line_chunk_content[i]) && i >= 0; i--) {
+    for (int i = *w_col - 1; is_char(line_chunk_content[i]) && i >= 0; i--) {
+        if (is_utf8(line_chunk_content[i])) {
+            *w_col -= 1;
+        }
+
         line_chunk_content[i] = ' ';
 
         truncated_chars++;
@@ -130,6 +160,10 @@ void slide_characters(char* string, int len, int spaces_end, int spaces_inside, 
     pad_string(queue, 0, len, '\0');
 
     int spaces_done = 0;
+
+    if (!strcmp(string, "solo il carattere    ")) {
+        printf("%s\n", string);
+    }
 
     for (int i = 1; i < len; i++) {
         char DEBUG = string[i];
