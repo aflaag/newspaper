@@ -105,18 +105,11 @@ int read_chunk(FILE* input_file, char* line_chunk_content, int w_col, long* base
     int finish = *base_idx + w_col;
 
     for (int j = *base_idx; j < finish; j++) {
-        // char curr_char = input_file[j];
-        // char next_char = input_file[j + 1];
-
-        // long curr_pos = ftell(input_file);
-
         char curr_char = fgetc(input_file);
 
         long next_pos = ftell(input_file);
 
         char next_char = fgetc(input_file);
-
-        fseek(input_file, next_pos, SEEK_SET);
 
         if (curr_char == '\n' && next_char == '\n') {
             pad_string(line_chunk_content, j - finish + w_col, w_col, ' ');
@@ -127,7 +120,6 @@ int read_chunk(FILE* input_file, char* line_chunk_content, int w_col, long* base
         }
         
         // TODO: provare a vedere se il tutto funziona lasciando spazi multipli dentro una riga, sempre che io lo voglia fare
-        // if (!feof(input_file)) {
         if (curr_char != EOF) {
             if ((!is_text_started && !is_char(curr_char)) || (is_text_started && !is_char(curr_char) && !is_char(next_char))) {
                 finish++;
@@ -141,15 +133,13 @@ int read_chunk(FILE* input_file, char* line_chunk_content, int w_col, long* base
             return ENDED_TEXT;
         }
 
-        // fseek(input_file, next_pos, SEEK_SET);
+        fseek(input_file, next_pos, SEEK_SET);
     }
 
     return NOT_ENDED_TEXT;
 }
 
-// TODO: dovrebbe prendere un puntatore a cui collegare le pagine finite
-// restituendo un intero per fare un po di error handling da parte del chiamante
-int build_pages(Page* curr_page, FILE* input_file, int cols, int h_col, int w_col) {
+int build_pages(FILE* input_file, Page* curr_page, int cols, int h_col, int w_col) {
     Page* first_page = curr_page; // backup
 
     int line_counter = 0;
@@ -159,7 +149,6 @@ int build_pages(Page* curr_page, FILE* input_file, int cols, int h_col, int w_co
 
     bool is_new_par = false;
 
-    // for (int i = 0; feof(input_file) != 0; i += w_col) {
     while (!feof(input_file)) {
         long curr_pos = ftell(input_file);
 
@@ -168,14 +157,12 @@ int build_pages(Page* curr_page, FILE* input_file, int cols, int h_col, int w_co
         int end_value = NOT_ENDED_TEXT;
 
         if (!is_new_par) {
-            // end_value = read_chunk(input_file, line_chunk_content, w_col, &i);
             end_value = read_chunk(input_file, line_chunk_content, w_col, &curr_pos);
         } else {
             is_new_par = false;
 
             pad_string(line_chunk_content, 0, w_col, ' ');
 
-            // i -= w_col;
             curr_pos -= w_col;
         }
 

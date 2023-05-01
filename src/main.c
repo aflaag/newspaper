@@ -35,7 +35,7 @@ int main(int argc, char* argv[]) {
 
     Page* pages = new_page(NULL);
 
-    int exit_code = build_pages(pages, input_file, cols, h_col, w_col);
+    int exit_code = build_pages(input_file, pages, cols, h_col, w_col);
 
     switch (exit_code)  {
         case INSUFFICIENT_WIDTH:
