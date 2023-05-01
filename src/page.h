@@ -184,7 +184,7 @@ int build_pages(FILE* input_file, Page* curr_page, int cols, int h_col, int w_co
             curr_pos -= replace_truncated_chars(line_chunk_content, w_col);
         }
 
-        string_replace(line_chunk_content, '\n', ' ');
+        string_replace(line_chunk_content, '\n', ' '); // TODO: attenzione che vanno ignorati anche altri caratteri strani tipo \t e non so se c'è altro
 
         if (end_value != ENDED_PARAGRAPH) {
             justify_string(line_chunk_content, w_col);

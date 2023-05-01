@@ -14,7 +14,11 @@ todo desc
 
 ### List
 
-- ricontrolla NULL cose just to make sure
+- controllare quella cosa che sta scritta da qualche parte (quando tipo l'ultimo spazio è paro paro na roba del genere)
+- gestire i caratteri unicode
+- stampare su file
+- debuggare per controllare che il free funzioni correttamente
+- usare getopt
 - controllare che l'input non sia NULL in tutte le funzioni
     - gestire gli errori restituendo interi al posto dei valori, per i codici di errore
 - fixa il bug nel print (non ricordo che voleva dire questa cosa, e se ho capito che vuol dire l'ho fixato)
