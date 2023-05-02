@@ -6,8 +6,8 @@ todo desc
 
 ### Checked files
 
-- [x] line_chunk.h
-- [x] line.h
+- [ ] line_chunk.h
+- [ ] line.h
 - [ ] main.c
 - [ ] page.h
 - [ ] string_tools.h

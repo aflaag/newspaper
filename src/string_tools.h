@@ -4,6 +4,9 @@
 #include <stdint.h>
 #include <stdbool.h>
 
+#define ATOI_SUCCESS 0
+#define ATOI_INVALID_CHAR -1
+
 #ifndef STRING_TOOLS_H
 #define STRING_TOOLS_H
 
@@ -161,10 +164,6 @@ void slide_characters(char* string, int len, int spaces_end, int spaces_inside, 
 
     int spaces_done = 0;
 
-    if (!strcmp(string, "solo il carattere    ")) {
-        printf("%s\n", string);
-    }
-
     for (int i = 1; i < len; i++) {
         char DEBUG = string[i];
         if (tail != 0) {
@@ -255,6 +254,40 @@ void justify_string(char* string, int len) {
     }
 
     slide_characters(string, len, spaces_end, spaces_inside, ratio);
+}
+
+/* Returns the power of a number. */
+int powi(int n, int exp) {
+    int tot = 1;
+
+    for (int i = 0; i < exp; i++) {
+        tot *= n;
+    }
+
+    return tot;
+}
+
+/* Returns the integer represented by the input string. */
+int pos_atoi(char* str, int len, int* number) {
+    int tot = 0;
+
+    int exp = len - 1;
+
+    for (int i = 0; i < len; i++) {
+        int curr_char = str[i] - '0';
+        
+        if (curr_char < 0 || curr_char > 9) {
+            return ATOI_INVALID_CHAR;
+        }
+
+        tot += powi(10, exp) * curr_char;
+
+        exp--;
+    }
+
+    *number = tot;
+
+    return ATOI_SUCCESS;
 }
 
 #endif

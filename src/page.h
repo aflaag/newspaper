@@ -211,17 +211,11 @@ int build_pages(FILE* input_file, Page* curr_page, int cols, int h_col, int w_co
             if (line_chunk_content == NULL) {
                 return REALLOC_ERROR;
             }
-            
-            if (w_col != w_col_backup) {
-                printf("a");
-            }
-
-            // w_col = w_col_backup;
         }
 
         string_replace(line_chunk_content, '\n', ' '); // TODO: attenzione che vanno ignorati anche altri caratteri strani tipo \t e non so se c'è altro
 
-        printf("%s\n", line_chunk_content);
+        // printf("%s\n", line_chunk_content);
 
         if (end_value != ENDED_PARAGRAPH) {
             justify_string(line_chunk_content, w_col);
