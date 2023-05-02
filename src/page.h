@@ -78,7 +78,7 @@ void reset_lines_head(Page* page) {
     page->curr_line = page->lines_head;
 }
 
-void print_pages(Page* page, int spacing, char* pages_separator, char spacing_char) {
+void print_pages(FILE* output_file, Page* page, int spacing, char* pages_separator, char spacing_char) {
     if (page == NULL) { // TODO: testa che succede con pages_separator a stringa vuota oppure spacing_char == '\0'
         return;
     }
@@ -86,15 +86,15 @@ void print_pages(Page* page, int spacing, char* pages_separator, char spacing_ch
     Line* curr_line = (Line*) page->lines_head;
 
     while (curr_line != NULL) {
-        print_line(curr_line, spacing, spacing_char);
+        print_line(output_file, curr_line, spacing, spacing_char);
 
         curr_line = (Line*) curr_line->next_line;
     }
 
     if (page->next_page != NULL) {
-        printf("%s", pages_separator);
+        fprintf(output_file, "%s", pages_separator);
 
-        print_pages((Page*) page->next_page, spacing, pages_separator, spacing_char);
+        print_pages(output_file, (Page*) page->next_page, spacing, pages_separator, spacing_char);
     }
 }
 

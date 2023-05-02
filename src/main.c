@@ -30,7 +30,7 @@ int main(int argc, char* argv[]) {
     // FILE* input_file = fopen("../utf8_text.txt", "r"); // DEBUG
 
     if (input_file == NULL) {
-        fprintf(stderr, "FILE: TODO ERROR HANDLING\n");
+        fprintf(stderr, "INPUT FILE: TODO ERROR HANDLING\n");
         
         return -1;
     }
@@ -51,7 +51,13 @@ int main(int argc, char* argv[]) {
         case PAGE_SUCCESS:
             printf("\nbegin---\n\n");
 
-            print_pages(pages, spacing, "\n%%%\n\n", ' '); // TODO: se questi sono NULL che succede? ehehe
+            FILE* output_file = fopen("output.txt", "a");
+
+            if (output_file == NULL) {
+                fprintf(stderr, "OUTPUT FILE: TODO ERROR HANDLING\n");
+            }
+
+            print_pages(output_file, pages, spacing, "\n%%%\n\n", 'X'); // TODO: se questi sono NULL che succede? ehehe
 
             break;
         default:

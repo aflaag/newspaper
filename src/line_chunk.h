@@ -40,13 +40,13 @@ LineChunk* append_line_chunk(LineChunk* curr_line_chunk, char* content) {
     return next_line_chunk;
 }
 
-void print_line_chunk(LineChunk* line_chunk) {
+void print_line_chunk(FILE* output_file, LineChunk* line_chunk) {
     if (line_chunk == NULL) {
         return;
     }
 
     if (line_chunk->content != NULL) {
-        printf("%s", line_chunk->content);
+        fprintf(output_file, "%s", line_chunk->content);
     }
 }
 

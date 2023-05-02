@@ -48,7 +48,7 @@ void set_line_chunks_head(Line* line) {
     }
 }
 
-void print_line(Line* line, int spacing, char spacing_char) {
+void print_line(FILE* output_file, Line* line, int spacing, char spacing_char) {
     if (line == NULL) {
         return;
     }
@@ -56,16 +56,20 @@ void print_line(Line* line, int spacing, char spacing_char) {
     LineChunk* curr_line_chunk = (LineChunk*) line->line_chunks_head;
 
     while (curr_line_chunk != NULL) {
-        print_line_chunk(curr_line_chunk);
+        print_line_chunk(output_file, curr_line_chunk);
 
-        for (int i = 0; i < spacing; i++) {
-            printf("%c", spacing_char);
+        LineChunk* next_line_chunk = (LineChunk*) curr_line_chunk->next_line_chunk;
+
+        if (next_line_chunk != NULL) {
+            for (int i = 0; i < spacing; i++) {
+                fprintf(output_file, "%c", spacing_char);
+            }
         }
 
-        curr_line_chunk = (LineChunk*) curr_line_chunk->next_line_chunk;
+        curr_line_chunk = next_line_chunk;
     }
 
-    printf("\n");
+    fprintf(output_file, "\n");
 }
 
 void free_lines(Line* line) {

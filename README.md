@@ -14,10 +14,7 @@ todo desc
 
 ### List
 
-- RIMUOVERE LA "COLONNA VUOTA" DOPO L'ULTIMA COLONNA NEL PRINT, CHE POI VIENE RIFLESSO NELLA STAMPA
 - controllare quella cosa che sta scritta da qualche parte (quando tipo l'ultimo spazio è paro paro na roba del genere)
-- gestire i caratteri unicode
-- stampare su file
 - debuggare per controllare che il free funzioni correttamente
 - usare getopt
 - controllare che l'input non sia NULL in tutte le funzioni
