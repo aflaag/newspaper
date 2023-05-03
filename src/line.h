@@ -48,7 +48,7 @@ void set_line_chunks_head(Line* line) {
     }
 }
 
-void append_line_chunk_to_line(Line** line_ptr, char* line_chunk_content) {
+void append_line_chunk_and_advance(Line** line_ptr, char* line_chunk_content) {
     if (line_ptr != NULL && *line_ptr != NULL) {
         (*line_ptr)->curr_line_chunk = (struct LineChunk*) append_line_chunk((LineChunk*) (*line_ptr)->curr_line_chunk, line_chunk_content);
     }

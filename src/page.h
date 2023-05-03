@@ -78,7 +78,7 @@ void reset_lines_head(Page* page) {
     page->curr_line = page->lines_head;
 }
 
-void append_line_to_page(Page** page_ptr, LineChunk* line_chunk) {
+void append_line_and_advance(Page** page_ptr, LineChunk* line_chunk) {
     if (page_ptr != NULL && *page_ptr != NULL) {
         (*page_ptr)->curr_line = (struct Line*) append_line((Line*) (*page_ptr)->curr_line, line_chunk);
     }
@@ -233,14 +233,14 @@ int build_pages(FILE* input_file, Page* curr_page, int cols, int h_col, int w_co
         }
 
         if (!h_col_reached) {
-            append_line_to_page(&curr_page, NULL);
+            append_line_and_advance(&curr_page, NULL);
 
             set_lines_head(curr_page);
         }
 
         Line* curr_line = (Line*) curr_page->curr_line;
 
-        append_line_chunk_to_line(&curr_line, line_chunk_content);
+        append_line_chunk_and_advance(&curr_line, line_chunk_content);
 
         set_line_chunks_head(curr_line);
 
