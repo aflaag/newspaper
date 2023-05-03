@@ -95,11 +95,9 @@ int main(int argc, char* argv[]) {
     switch (exit_code)  {
         case REALLOC_ERROR:
             fprintf(stderr, "REALLOC: TODO ERROR HANDLING\n");
-
             break;
         case INSUFFICIENT_WIDTH:
             fprintf(stderr, "WIDTH: TODO ERROR HANDLING\n");
-
             break;
         case PAGE_SUCCESS:
             printf("tutto ok zi\n");

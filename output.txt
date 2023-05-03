@@ -24,12 +24,12 @@ requisiti: un file di          è  separato  da   una          fornire  un  file
 testo   in   codifica          linea vuota; la prima          testo  README con una
 Unicode       (UTF-8)          colonna  di testo è a          breve spiegazione dei
 contenente  un  testo          sinistra;   tutte  le          file  inclusi  e   un
-in           italiano          righe,         tranne          breve manuale utente;
+in           italiano          �Dw          breve manuale utente;
 strutturato        in          l’ultima,   di   ogni          la           versione
 paragrafi separati da          paragrafo    dovranno          multi-processo    del
 una o più linee vuote          essere  allineate  ad          programma       dovrà
 (stringa   contenente          entrambi   i  margini          essere  costituita da
-solo   il   carattere          della        colonna;          almeno  tre  processi
+[qQ`          +�Dw          almeno  tre  processi
 ‘\n’). Ogni paragrafo          l’ultima riga di ogni          concorrenti        ed
 è costituito da una o          paragrafo    è   solo          intercomunicanti: uno
 più          stringhe          allineata a sinistra;          per  leggere  il file
@@ -78,6 +78,6 @@ l’analisi della linea          architettura      del
 di     comando     si          programma  e commenti
 consiglia  getopt, di          (2/30);  usabilità  e
 uso  molto semplice e          istruzioni     utente
-che  fa  chunke della          (1/30)     èèèèèèèèèè
+che  fa  chunke della          ^qQ`
 libreria GNU standard          èèèèèèèèèèè.
 del  C; concentratevi
