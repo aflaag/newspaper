@@ -78,6 +78,12 @@ void reset_lines_head(Page* page) {
     page->curr_line = page->lines_head;
 }
 
+void append_line_to_page(Page** page_ptr, LineChunk* line_chunk) {
+    if (page_ptr != NULL && *page_ptr != NULL) {
+        (*page_ptr)->curr_line = (struct Line*) append_line((Line*) (*page_ptr)->curr_line, line_chunk);
+    }
+}
+
 void print_pages(FILE* output_file, Page* page, int spacing, char* pages_separator, char spacing_char) {
     if (page == NULL) { // TODO: testa che succede con pages_separator a stringa vuota oppure spacing_char == '\0'
         return;
@@ -101,8 +107,6 @@ void print_pages(FILE* output_file, Page* page, int spacing, char* pages_separat
 int read_chunk(FILE* input_file, char* line_chunk_content, int w_col, long* base_idx, int* unicode_offset) {
     bool is_text_started = false;
 
-    // int finish = *base_idx + w_col;
-
     int invalid_offset = 0;
 
     for (int j = 0; j < w_col + invalid_offset + *unicode_offset; j++) {
@@ -115,13 +119,11 @@ int read_chunk(FILE* input_file, char* line_chunk_content, int w_col, long* base
         if (curr_char == '\n' && next_char == '\n') {
             pad_string(line_chunk_content, j - invalid_offset, w_col + *unicode_offset, ' ');
 
-            // *base_idx += (long) j - (long) finish + 2;
             *base_idx += j - (w_col + invalid_offset + *unicode_offset) + 2;
 
             return line_chunk_content[0] != ' ' ? ENDED_PARAGRAPH : NOT_ENDED_TEXT;
         }
         
-        // TODO: provare a vedere se il tutto funziona lasciando spazi multipli dentro una riga, sempre che io lo voglia fare
         if (curr_char != EOF) {
             if ((!is_text_started && !is_char(curr_char)) || (is_text_started && !is_char(curr_char) && !is_char(next_char))) {
                 invalid_offset++;
@@ -133,8 +135,6 @@ int read_chunk(FILE* input_file, char* line_chunk_content, int w_col, long* base
 
                 if (is_utf8((unsigned char) curr_char)) {
                     *unicode_offset += 1;
-                    // *base_idx += 1;
-                    // j--;
 
                     char* larger_chunk = realloc(line_chunk_content, w_col + *unicode_offset + 1);
 
@@ -161,10 +161,9 @@ int build_pages(FILE* input_file, Page* curr_page, int cols, int h_col, int w_co
     Page* first_page = curr_page; // backup
 
     int line_counter = 0;
-    bool h_col_reached = false;
-
     int col_counter = 0;
 
+    bool h_col_reached = false;
     bool is_new_par = false;
 
     while (!feof(input_file)) {
@@ -226,14 +225,14 @@ int build_pages(FILE* input_file, Page* curr_page, int cols, int h_col, int w_co
         w_col = w_col_backup;
 
         if (!h_col_reached) {
-            curr_page->curr_line = (struct Line*) append_line((Line*) curr_page->curr_line, NULL);
+            append_line_to_page(&curr_page, NULL);
 
             set_lines_head(curr_page);
         }
 
         Line* curr_line = (Line*) curr_page->curr_line;
 
-        curr_line->curr_line_chunk = (struct LineChunk*) append_line_chunk((LineChunk*) curr_line->curr_line_chunk, line_chunk_content);
+        append_line_chunk_to_line(&curr_line, line_chunk_content);
 
         set_line_chunks_head(curr_line);
 

@@ -62,6 +62,8 @@ int parse_args(int argc, char* argv[], char** input_path, char** output_path, in
     if (*cols == 0 || *h_col == 0 || *w_col == 0 || *spacing == 0) {
         return ZERO_INTEGER;
     }
+
+    return ARGS_SUCCESS;
 }
 
 #endif
