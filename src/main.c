@@ -82,6 +82,11 @@ int main(int argc, char* argv[]) {
 
     int exit_code = build_pages(input_file, pages, cols, h_col, w_col);
 
+    if (fclose(input_file)) {
+        fprintf(stderr, "An error occurred while trying to closing the input file '%s'.\n", input_path);
+        return INPUT_FILE_CLOSING_FAILURE;
+    }
+
     FILE* output_file = fopen(output_path, "a");
 
     if (output_file == NULL) {
@@ -97,10 +102,10 @@ int main(int argc, char* argv[]) {
     switch (exit_code)  {
         case ALLOC_ERROR:
             fprintf(stderr, "REALLOC: TODO ERROR HANDLING\n");
-            return ALLOCATION_FAILURE;
+            break;
         case INSUFFICIENT_WIDTH:
             fprintf(stderr, "WIDTH: TODO ERROR HANDLING\n");
-            return INVALID_INPUT_TEXT;
+            break;
         case PAGE_SUCCESS:
             print_pages(output_file, pages, spacing, "\n%%%\n\n", ' ');
             break;
@@ -110,14 +115,20 @@ int main(int argc, char* argv[]) {
 
     free_pages(pages); // TODO: dovrebbe funzionare bene, però debugga just to make sure, anche il free di line_chunk_content in page.h
 
-    if (fclose(input_file)) {
-        fprintf(stderr, "An error occurred while trying to closing the input file '%s'.\n", input_path);
-        return INPUT_FILE_CLOSING_FAILURE;
-    }
-
     if (fclose(output_file)) {
         fprintf(stderr, "An error occurred while trying to closing the output file '%s'.\n", output_path);
         return OUTPUT_FILE_CLOSING_FAILURE;
+    }
+
+    switch (exit_code)  {
+        case ALLOC_ERROR:
+            return ALLOCATION_FAILURE;
+        case INSUFFICIENT_WIDTH:
+            return INVALID_INPUT_TEXT;
+        case PAGE_SUCCESS:
+            break;
+        default:
+            break;
     }
 
     return PROGRAM_SUCCESS;

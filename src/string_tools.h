@@ -42,20 +42,28 @@ bool is_utf8(unsigned char character) {
     return character >> 6 == 0b10;
 }
 
+/*
+    La funzione restituisce true, se il chunk fornito in input contiene una parola
+    troncata alla fine.
+*/
+
 bool check_truncated_end(char* line_chunk_content, int w_col, char next_char) {
     return is_char(line_chunk_content[w_col - 1]) && (is_char(next_char) || is_utf8(next_char));
 }
 
+/*
+    La funzione prende in input una stringa, e la sua nuova dimensione, e se possibile,
+    aggiorna il puntatore char** di input con l'indirizzo alla nuova stringa di dimensione fornita;
+    si noti che la funzione tronca, e ritorna codici di errore nel caso in cui non è
+    stato possibile effettuare il troncamento; la funzione, in caso di successo, garantisce
+    che la stringa fornita in input venga deallocata, e ne viene riallocata una nuova.
+*/
 int truncate_string(char** string, int new_size) {
     int original_size = strlen(*string);
 
+    // se la nuova dimensione è maggiore o uguale alla dimensione originale,
+    // il troncamento non deve essere effettuato
     if (original_size <= new_size) {
-        return TRUNCATION_NOT_PERFORMED;
-    }
-
-    int amount = original_size - new_size;
-
-    if (amount > original_size) {
         return TRUNCATION_NOT_PERFORMED;
     }
 
@@ -74,15 +82,25 @@ int truncate_string(char** string, int new_size) {
     return TRUNCATION_SUCCESS;
 }
 
-long replace_truncated_chars(char* line_chunk_content, int* w_col) {
+/*
+    La funzione prende in input una stringa, la sua larghezza, e un carattere
+    di rimpiazzo, e rimpiazza con quest'ultimo tutta l'ultima parola della stringa fornita.
+*/
+long replace_truncated_chars(char* line_chunk_content, int* w_col, char replacement) {
     long truncated_chars = 0;
 
+    // il ciclo parte dalla fine della riga e procede fino a trovare un carattere
+    // che sia parte di una parola
     for (int i = *w_col - 1; is_char(line_chunk_content[i]) && i >= 0; i--) {
+        // poiché la dimensione della riga è stata modificata, aggiungendo 1 byte per ogni
+        // carattere unicode che essa contiene, è necessario decrementare nuovamente
+        // la sua dimensione, per ogni carattere unicode incontrato all'interno dell'ultima
+        // parola della riga, affinché la dimensione di questa sia coerente
         if (is_utf8(line_chunk_content[i])) {
             *w_col -= 1;
         }
 
-        line_chunk_content[i] = ' ';
+        line_chunk_content[i] = replacement;
 
         truncated_chars++;
     }
