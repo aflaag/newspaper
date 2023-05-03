@@ -33,6 +33,7 @@ int main(int argc, char* argv[]) {
     char* output_path;
     
     int args_err = parse_args(argc, argv, &input_path, &output_path, &cols, &h_col, &w_col, &spacing);
+    // int args_err = 0;
 
     switch (args_err) {
         case NOT_ENOUGH_ARGS:
@@ -64,6 +65,8 @@ int main(int argc, char* argv[]) {
     // char* input_content = "a x x b x x c c iaone come stae"; h_col = 7; w_col = 18; // TODO: controlla quando arriva all'ultimo (devo pensare a com'è fatto il test)
 
     FILE* input_file = fopen(input_path, "r");
+
+    // cols = 3; h_col = 40; w_col = 21; spacing = 10; input_file = fopen("../utf8_text.txt", "r");
 
     if (input_file == NULL) {
         fprintf(stderr, "An error occurred while trying to open the input file '%s'.\n", input_path);
