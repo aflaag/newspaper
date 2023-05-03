@@ -4,8 +4,11 @@
 #include <stdint.h>
 #include <stdbool.h>
 
+#define TRUNCATION_NOT_PERFORMED 2
+#define TRUNCATION_SUCCESS 1
 #define ATOI_SUCCESS 0
 #define ATOI_INVALID_CHAR -1
+#define TRUNCATION_ERROR -2
 
 #ifndef STRING_TOOLS_H
 #define STRING_TOOLS_H
@@ -43,34 +46,36 @@ bool check_truncated_end(char* line_chunk_content, int w_col, char next_char) {
     return is_char(line_chunk_content[w_col - 1]) && (is_char(next_char) || is_utf8(next_char));
 }
 
-char* truncate_string(char* string, int new_size) {
-    int original_size = strlen(string);
+int truncate_string(char** string, int new_size) {
+    int original_size = strlen(*string);
 
     if (original_size <= new_size) {
-        return string;
+        return TRUNCATION_NOT_PERFORMED;
     }
 
     int amount = original_size - new_size;
 
     if (amount > original_size) {
-        return string;
+        return TRUNCATION_NOT_PERFORMED;
     }
 
     char* truncated_string = calloc(new_size + 1, sizeof(char));
 
     if (truncated_string == NULL) {
-        return string;
+        return TRUNCATION_ERROR;
     }
 
-    strncpy(truncated_string, string, new_size);
+    strncpy(truncated_string, *string, new_size);
 
-    free(string);
+    free(*string);
 
-    return truncated_string;
+    *string = truncated_string;
+    
+    return TRUNCATION_SUCCESS;
 }
 
-int replace_truncated_chars(char* line_chunk_content, int* w_col) {
-    int truncated_chars = 0;
+long replace_truncated_chars(char* line_chunk_content, int* w_col) {
+    long truncated_chars = 0;
 
     for (int i = *w_col - 1; is_char(line_chunk_content[i]) && i >= 0; i--) {
         if (is_utf8(line_chunk_content[i])) {

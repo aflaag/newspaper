@@ -7,14 +7,13 @@
 #include "line.h"
 #include "string_tools.h"
 
-#define NOT_ENDED_TEXT 0
-#define ENDED_TEXT 1
+#define PAGE_SUCCESS 4
+#define TRUNCATED_HANDLING_SUCCESS 3
 #define ENDED_PARAGRAPH 2
-
-#define PAGE_SUCCESS -1
-#define INSUFFICIENT_WIDTH -2
-#define REALLOC_ERROR -3
-#define TRUNCATED_HANDLING_SUCCESS -4
+#define ENDED_TEXT 1
+#define NOT_ENDED_TEXT 0
+#define INSUFFICIENT_WIDTH -1
+#define ALLOC_ERROR -2
 
 #ifndef PAGE_H
 #define PAGE_H
@@ -140,7 +139,7 @@ int read_chunk(FILE* input_file, char* line_chunk_content, int w_col, long* base
                     char* larger_chunk = realloc(line_chunk_content, w_col + *unicode_offset + 1);
 
                     if (larger_chunk == NULL) {
-                        return REALLOC_ERROR; // TODO: HANDLE THIS
+                        return ALLOC_ERROR; // TODO: HANDLE THIS
                     }
 
                     larger_chunk[w_col + *unicode_offset] = '\0';
@@ -158,24 +157,24 @@ int read_chunk(FILE* input_file, char* line_chunk_content, int w_col, long* base
     return NOT_ENDED_TEXT;
 }
 
-int handle_truncated_string(FILE* input_file, char* line_chunk_content, int* w_col, long* curr_pos) {
+int handle_truncated_string(FILE* input_file, char** line_chunk_content, int* w_col, long* curr_pos) {
     fseek(input_file, *curr_pos + *w_col, SEEK_SET);
 
     char fchar_next_line = fgetc(input_file);
 
     fseek(input_file, *curr_pos, SEEK_SET);
 
-    if (check_truncated_end(line_chunk_content, *w_col, fchar_next_line)) {
-        if (no_spaces(line_chunk_content, *w_col)) { 
+    if (check_truncated_end(*line_chunk_content, *w_col, fchar_next_line)) {
+        if (no_spaces(*line_chunk_content, *w_col)) { 
             return INSUFFICIENT_WIDTH;
         }
 
-        *curr_pos -= replace_truncated_chars(line_chunk_content, w_col);
+        *curr_pos -= replace_truncated_chars(*line_chunk_content, w_col);
 
-        line_chunk_content = truncate_string(line_chunk_content, *w_col);
+        int truncation_err = truncate_string(line_chunk_content, *w_col);
 
-        if (line_chunk_content == NULL) {
-            return REALLOC_ERROR;
+        if (truncation_err == TRUNCATION_ERROR) {
+            return ALLOC_ERROR;
         }
     }
 
@@ -206,7 +205,7 @@ int build_pages(FILE* input_file, Page* curr_page, int cols, int h_col, int w_co
 
             int w_col_backup = w_col;
 
-            int trunc_err = handle_truncated_string(input_file, line_chunk_content, &w_col, &curr_pos);
+            int trunc_err = handle_truncated_string(input_file, &line_chunk_content, &w_col, &curr_pos);
 
             if (trunc_err != TRUNCATED_HANDLING_SUCCESS) {
                 free(line_chunk_content); // TODO: debuggare anche questo
