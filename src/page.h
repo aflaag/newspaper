@@ -85,7 +85,7 @@ void append_line_and_advance(Page** page_ptr, LineChunk* line_chunk) {
 }
 
 void print_pages(FILE* output_file, Page* page, int spacing, char* pages_separator, char spacing_char) {
-    if (page == NULL) { // TODO: testa che succede con pages_separator a stringa vuota oppure spacing_char == '\0'
+    if (output_file == NULL || page == NULL || !strcmp(pages_separator, "\0") || spacing_char == '\0') {
         return;
     }
 
@@ -181,6 +181,45 @@ int handle_truncated_string(FILE* input_file, char** line_chunk_content, int* w_
     return TRUNCATED_HANDLING_SUCCESS;
 }
 
+void update_structure(bool* h_col_reached, Page* curr_page, char* line_chunk_content, bool end_value, int* line_counter, int cols, int h_col, int* col_counter) {
+    if (!*h_col_reached) {
+        append_line_and_advance(&curr_page, NULL);
+
+        set_lines_head(curr_page);
+    }
+
+    append_line_chunk_and_advance((Line**) &curr_page->curr_line, line_chunk_content);
+
+    set_line_chunks_head((Line*) curr_page->curr_line);
+
+    if (end_value == ENDED_TEXT) {
+        return;
+    }
+
+    if (*h_col_reached) {
+        advance_curr_line(curr_page);
+    }
+
+    *line_counter += 1;
+
+    if (*line_counter == h_col) {
+        *line_counter = 0;
+        *h_col_reached = true;
+
+        *col_counter += 1;
+
+        reset_lines_head(curr_page); 
+    }
+
+    if (*col_counter == cols) {
+        curr_page = append_page(curr_page, NULL);
+
+        *h_col_reached = false;
+
+        *col_counter = 0;
+    }
+}
+
 int build_pages(FILE* input_file, Page* curr_page, int cols, int h_col, int w_col) {
     Page* first_page = curr_page; // backup
 
@@ -231,44 +270,11 @@ int build_pages(FILE* input_file, Page* curr_page, int cols, int h_col, int w_co
 
             curr_pos -= w_col;
         }
-
-        if (!h_col_reached) {
-            append_line_and_advance(&curr_page, NULL);
-
-            set_lines_head(curr_page);
-        }
-
-        Line* curr_line = (Line*) curr_page->curr_line;
-
-        append_line_chunk_and_advance(&curr_line, line_chunk_content);
-
-        set_line_chunks_head(curr_line);
+        
+        update_structure(&h_col_reached, curr_page, line_chunk_content, end_value, &line_counter, cols, h_col, &col_counter);
 
         if (end_value == ENDED_TEXT) {
             break;
-        }
-
-        if (h_col_reached) {
-            advance_curr_line(curr_page);
-        }
-
-        line_counter++;
-
-        if (line_counter == h_col) {
-            line_counter = 0;
-            h_col_reached = true;
-
-            col_counter++;
-
-            reset_lines_head(curr_page); 
-        }
-
-        if (col_counter == cols) {
-            curr_page = append_page(curr_page, NULL);
-
-            h_col_reached = false;
-
-            col_counter = 0;
         }
 
         fseek(input_file, curr_pos + w_col, SEEK_SET);

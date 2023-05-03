@@ -55,7 +55,7 @@ void append_line_chunk_and_advance(Line** line_ptr, char* line_chunk_content) {
 }
 
 void print_line(FILE* output_file, Line* line, int spacing, char spacing_char) {
-    if (line == NULL) {
+    if (output_file == NULL || line == NULL || spacing == 0 || spacing_char == '\0') {
         return;
     }
 

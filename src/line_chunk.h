@@ -41,7 +41,7 @@ LineChunk* append_line_chunk(LineChunk* curr_line_chunk, char* content) {
 }
 
 void print_line_chunk(FILE* output_file, LineChunk* line_chunk) {
-    if (line_chunk == NULL) {
+    if (output_file == NULL || line_chunk == NULL) {
         return;
     }
 
