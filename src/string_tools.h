@@ -4,15 +4,21 @@
 #include <stdint.h>
 #include <stdbool.h>
 
+#define JUSTIFICATION_SUCCESS 3
 #define TRUNCATION_NOT_PERFORMED 2
 #define TRUNCATION_SUCCESS 1
 #define ATOI_SUCCESS 0
 #define ATOI_INVALID_CHAR -1
 #define TRUNCATION_ERROR -2
+#define INVALID_INPUT -3
 
 #ifndef STRING_TOOLS_H
 #define STRING_TOOLS_H
 
+/*
+    La funzione prende in input una stringa, un carattere da rimpiazzare, e un carattere di rimpiazzo, e
+    sostiuisce ogni istanza del primo carattere con il secondo, se possibile.
+*/
 void string_replace(char* string, char target, char replacement) {
     if (string == NULL) {
         return;
@@ -27,26 +33,39 @@ void string_replace(char* string, char target, char replacement) {
     }
 }
 
+/*
+    La funzione restituisce true se il carattere in input può essere considerato come parte di una parola;
+    si noti che caratteri come l'apostrofo o i segni di punteggiatura, poiché vengono scritti senza spazi tra parole,
+    restituiscono true poiché considerati parte di parola.
+*/
 bool is_char(char character) {
     return character != ' ' && character != '\n' && character != '\0' && character != EOF && character != '\t';
-    // return character > 32;
 }
 
-void pad_string(char* string, int start, int len, char character) {
-    for (int i = start; i < len; i++) {
+/*
+    La funzione prende in input una stringa, un punto di partenza ed uno di fine, ed il carattere con il quale
+    si vuole effettuare il padding della stringa fornita, e sovrascrive ogni carattere di questa a partire
+    dall'indice d'inizio fornito, fino a quello di fine; se gli indici non sono validi, la funzione non modifica
+    la stringa in input.
+*/
+void pad_string(char* string, unsigned int start, unsigned int end, char character) {
+    for (int i = start; i < end; i++) {
         string[i] = character;
     }
 }
 
+/*
+    La funzione restituisce true se il carattere in input è un carattere facente parte della codifica UTF-8.
+*/
 bool is_utf8(unsigned char character) {
     return character >> 6 == 0b10;
 }
 
 /*
-    La funzione restituisce true, se il chunk fornito in input contiene una parola
-    troncata alla fine.
+    La funzione restituisce true, se il chunk in input, fornito assieme alla sua lunghezza ed
+    al primo carattere del prossimo chunk, contiene una parola troncata alla fine; la funzione non
+    effettua controlli sulla lunghezza fornita, né sul puntatore della stringa.
 */
-
 bool check_truncated_end(char* line_chunk_content, int w_col, char next_char) {
     return is_char(line_chunk_content[w_col - 1]) && (is_char(next_char) || is_utf8(next_char));
 }
@@ -59,6 +78,10 @@ bool check_truncated_end(char* line_chunk_content, int w_col, char next_char) {
     che la stringa fornita in input venga deallocata, e ne viene riallocata una nuova.
 */
 int truncate_string(char** string, int new_size) {
+    if (string == NULL || *string == NULL) {
+        return TRUNCATION_NOT_PERFORMED;
+    }
+
     int original_size = strlen(*string);
 
     // se la nuova dimensione è maggiore o uguale alla dimensione originale,
@@ -83,8 +106,9 @@ int truncate_string(char** string, int new_size) {
 }
 
 /*
-    La funzione prende in input una stringa, la sua larghezza, e un carattere
-    di rimpiazzo, e rimpiazza con quest'ultimo tutta l'ultima parola della stringa fornita.
+    La funzione prende in input una stringa, la sua larghezza, e un carattere,
+    e rimpiazza con quest'ultimo tutta l'ultima parola della stringa fornita;
+    la funzione non effetua controlli sul puntatore alla stringa, né sulla lunghezza fornita.
 */
 long replace_truncated_chars(char* line_chunk_content, int* w_col, char replacement) {
     long truncated_chars = 0;
@@ -108,7 +132,16 @@ long replace_truncated_chars(char* line_chunk_content, int* w_col, char replacem
     return truncated_chars;
 }
 
+/*
+    La funzione restituisce true se la stringa fornita, assieme alla sua lunghezza, non contiene spazi;
+    la funzione non effettua controlli sulla lunghezza fornita, e restituisce true anche se il puntatore
+    alla stringa in input è NULL.
+*/
 bool no_spaces(char* string, int len) {
+    if (string == NULL) {
+        return true;
+    }
+
     for (int i = 0; i < len; i++) {
         if (string[i] == ' ') {
             return false;
@@ -118,17 +151,27 @@ bool no_spaces(char* string, int len) {
     return true;
 }
 
-int round_division(int x, int y) {
+/*
+    La funzione restituisce la divisione, arrotondata correttamente, tra gli interi positivi forniti.
+*/
+int round_division(unsigned int x, unsigned int y) {
     return (x + (y / 2)) / y;
 }
 
+/*
+    La funzione restituisce il numero di caratteri della stringa fornita input; la funzione non effettua
+    controlli sul puntatore della stringa in input, né sulla lunghezza fornita.
+*/
 int count_words(char* string, int len) {
+    // flag che viene settata a true quando ci si trova
+    // all'interno di una parola
     bool in_word = false;
 
     int words = 0;
 
     for (int i = 0; i < len; i++) {
         char curr_char = string[i];
+
         bool is_space = is_char(curr_char);
 
         if (is_space && in_word) {
@@ -140,6 +183,9 @@ int count_words(char* string, int len) {
         }
     }
 
+    // se, dopo aver terminato il ciclo, la flag 'in_word' è attiva, allora
+    // la stringa non termina con uno spazio, e dunque senza questo controllo
+    // l'ultima parola non verrebbe contata dall'algoritmo
     if (in_word) {
         words++;
     }
@@ -147,6 +193,9 @@ int count_words(char* string, int len) {
     return words;
 }
 
+/*
+    La funzione restituisce il minimo tra 'x' ed 'y'.
+*/
 int min(int x, int y) {
     return (x < y) ? x : y;
 }
@@ -249,37 +298,58 @@ void slide_characters(char* string, int len, int spaces_end, int spaces_inside, 
     }
 }
 
+/*
+    La funzione prende in input una stringa e la sua lunghezza, e ne giustifica il testo;
+    l'output restituito è garantito essere corretto solamente se la stringa non contiene
+    spazi multipli tra le parole; la funzione non effettua controlli sul puntatore alla stringa,
+    né sulla lunghezza fornita.
+*/
 void justify_string(char* string, int len) {
     int spaces_end = 0;
 
+    // viene calcolato il numero di spazi alla fine della riga
     for (int i = len - 1; string[i] == ' ' && i >= 0; i--) {
         spaces_end++;
     }
 
+    // se il numero di spazi alla fine della riga è pari a 0,
+    // allora non ci sono spazi alla fine da ridistribuire, e poiché
+    // la lettura dei chunk è stata effettuata in modo tale da prendere
+    // sempre 1 spazio tra le parole, allora non è necessario effettuare
+    // la giustificazione
     if (spaces_end == 0) {
         return;
     }
 
+    // il numero di spazi tra le parole (o intervalli) sarà esattamente il numero
+    // di parole - 1, poiché la stringa in input contiene parole separate da 1 solo spazio
     int spaces_inside = count_words(string, len) - 1;
 
-    // printf("%d ", spaces_inside);
-
-    // TODO: ricordati di scrivere che è garantito
-    // che gli space chunks abbiano esattamente 1 spazio
-    if (spaces_inside == 0) { // una sola parola
+    // se non ci sono spazi tra le parole, ma c'erano spazi alla fine
+    // della riga, allora la stringa è costituita da una sola parola,
+    // e dunque non è necessario effettuarne la giustificazione
+    if (spaces_inside == 0) {
         return;
     }
 
+    // il numero di spazi da ridistribuire per ogni intervallo
+    // è pari al numero di spazi alla fine, diviso per il numero di intervalli,
+    // sempre per la garanzia per cui gli intervalli sono costituiti da 1 spazio
     int ratio = round_division(spaces_end, spaces_inside);
 
-    if (ratio == 0) { // TODO: scrivere che questo è un fix che risolve quando il ratio fa 0
+    // se l'arrotondamento della divisione ha prodotto un rapporto pari a 0,
+    // l'algoritmo non è in grado di funzionare correttamente, e dunque è necessario
+    // arrotondare per eccesso in questo caso particolare
+    if (ratio == 0) {
         ratio = 1;
     }
 
     slide_characters(string, len, spaces_end, spaces_inside, ratio);
 }
 
-/* Returns the power of a number. */
+/*
+    La funzione restituisce n^exp.
+*/
 int powi(int n, int exp) {
     int tot = 1;
 
@@ -290,8 +360,12 @@ int powi(int n, int exp) {
     return tot;
 }
 
-/* Returns the integer represented by the input string. */
-int pos_atoi(char* str, int len, int* number) {
+/*
+    La funzione prende in input una stringa, la sua lunghezza, e un puntatore ad un intero positivo,
+    al quale verrà assegnato il numero che la stringa rappresenta, nel caso in cui il parsing
+    non abbia prodotto errori.
+*/
+int pos_atoi(char* str, int len, unsigned int* number) {
     int tot = 0;
 
     int exp = len - 1;
