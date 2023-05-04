@@ -16,9 +16,9 @@ todo desc
 
 - metti output.txt nel gitignore
 - RISOLVI IL BUG DELL'UTF8 ASSURDO
+- RILEGGI L'OUTPUT UTF8_PROF
 - COMMENTA LA PARTE DI CODICE PER FIXARE L'UTF8 CHE ALTRIMENTI TE LA SCORDI
 - RISCRIVI LA COSA DEL REMINDER, SIA COME CODICE CHE COME COMMENTI
-- NON FUNZIONA QUANDO UNA PAROLA È LARGA QUANTO W E L'ULTIMO CARATTERE È UTF-8, INVESTIGA
 - rendere const tutto quello che dovrebbe esserlo
 - rendere unsigned tutto quello che dovrebbe esserlo
 - fai gli headers fatti bene
@@ -30,3 +30,4 @@ todo desc
 - controllare che l'input non sia NULL in tutte le funzioni
 - commenta qualsiasi cosa
     - commenta le costanti (?)
+- RICONTROLLA TUTTO QUELLO CHE C'È SCRITTO NEL TESTO

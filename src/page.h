@@ -407,10 +407,11 @@ int build_pages(FILE* input_file, Page* curr_page, int cols, int h_col, int w_co
                 return trunc_err;
             }
 
-            // vengono rimpiazzati caratteri eventuali '\n' e '\t', poiché altrimenti potrebbero
-            // disallineare le colonne in output
+            // vengono rimpiazzati caratteri eventuali '\n', '\r' e '\t', poiché
+            // altrimenti potrebbero disallineare le colonne in output
             string_replace(line_chunk_content, '\n', ' ');
             string_replace(line_chunk_content, '\t', ' ');
+            string_replace(line_chunk_content, '\r', ' ');
 
             if (end_value != ENDED_PARAGRAPH) {
                 // se la riga corrente non è l'ultima di un paragrafo, allora deve essere giustificata
