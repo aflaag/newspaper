@@ -14,9 +14,9 @@ def main():
         output_content = O.read()
 
     if input_content == output_content:
-        print("The two files are identical.")
+        print("passed.")
     else:
-        print("The two files differ.")
+        print("not passed.")
 
 if __name__ == "__main__":
     main()
