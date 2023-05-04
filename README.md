@@ -14,7 +14,6 @@ todo desc
 
 ### List
 
-- FIXARE IL BUG DI QUANDO CASCA PARO
 - NON FUNZIONA QUANDO UNA PAROLA È LARGA QUANTO W E L'ULTIMO CARATTERE È UTF-8, INVESTIGA
 - fai bene i test cosi posso testarlo sistematicamente
 - rendere const tutto quello che dovrebbe esserlo

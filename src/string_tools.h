@@ -155,8 +155,8 @@ bool no_spaces(char* string, int len) {
     La funzione restituisce la divisione, arrotondata correttamente, tra gli interi positivi forniti.
 */
 int round_division(unsigned int x, unsigned int y) {
-    return (x + y / 2) / y;
-    // return x / y;
+    // return (x + y / 2) / y;
+    return x / y;
 }
 
 /*
@@ -230,7 +230,7 @@ char dequeue(char queue[], int len, int* head, int* tail) {
     }
 }
 
-void slide_characters(char* string, int len, int spaces_end, int spaces_inside, int ratio) {
+void slide_characters(char* string, int len, int spaces_end, int spaces_inside, int ratio, int remainder) {
     int head = 0;
     int tail = 0;
 
@@ -260,6 +260,11 @@ void slide_characters(char* string, int len, int spaces_end, int spaces_inside, 
                 
                 int curr_spaces = evaluate_curr_spaces(spaces_end, spaces_inside, spaces_done, ratio);
 
+                if (remainder != 0) {
+                    curr_spaces++;
+                    remainder--;
+                }
+
                 spaces_end -= curr_spaces;
 
                 while (curr_spaces > 0) {
@@ -283,6 +288,11 @@ void slide_characters(char* string, int len, int spaces_end, int spaces_inside, 
         } else {
             if (is_char(string[i]) && !is_char(string[i - 1])) {
                 int curr_spaces = evaluate_curr_spaces(spaces_end, spaces_inside, spaces_done, ratio);
+
+                if (remainder != 0) {
+                    curr_spaces++;
+                    remainder--;
+                }
 
                 spaces_end -= curr_spaces;
 
@@ -343,19 +353,19 @@ void justify_string(char* string, int len) {
     // sempre per la garanzia per cui gli intervalli sono costituiti da 1 spazio
     int ratio = round_division(spaces_end, spaces_inside);
 
-    // int remainder = spaces_end % spaces_inside;
+    int remainder = spaces_end % spaces_inside;
 
     // TODO: VA FIXATO IL BUG DEL RESTO (non so come)
 
     // se l'arrotondamento della divisione ha prodotto un rapporto pari a 0,
     // l'algoritmo non è in grado di funzionare correttamente, e dunque è necessario
     // arrotondare per eccesso in questo caso particolare
-    if (ratio == 0) {
+    // if (ratio == 0) {
         // ratio = remainder;
-        ratio = 1;
-    }
+        // ratio = 1;
+    // }
 
-    slide_characters(string, len, spaces_end, spaces_inside, ratio);
+    slide_characters(string, len, spaces_end, spaces_inside, ratio, remainder);
 
     // if (strlen(string) != 21) {
     //     printf("%s - %d\n", string, strlen(string));
