@@ -19,9 +19,9 @@ una    multi-processo          i  parametri espressi          di     codice     
 con     almeno    tre          dall’utente.       Le          importanti;   fornire
 processi concorrenti.          pagine  sono separate          un    makefile    per
                                dalla stringa “\n %%%          compilare il progetto
-Dati  in  ingresso  e          \n”;  ogni  paragrafo          con un semplice make;
-requisiti: un file di          è   separato  da  una          fornire  un  file  di
-testo   in   codifica          linea vuota; la prima          testo  README con una
+Dati  in  ingresso  e          \n”; ogni paragrafo è          con un semplice make;
+requisiti: un file di          separato da una linea          fornire  un  file  di
+testo   in   codifica          vuota;    la    prima          testo  README con una
 Unicode       (UTF-8)          colonna  di testo è a          breve spiegazione dei
 contenente  un  testo          sinistra;   tutte  le          file   inclusi  e  un
 in           italiano          righe,         tranne          breve manuale utente;
@@ -79,5 +79,5 @@ di     comando     si          programma  e commenti
 consiglia  getopt, di          (2/30);  usabilità  e
 uso  molto semplice e          aaaaaaaaaaaaaaaaaaaaa
 che  fa  chunke della          istruzioni         ut
-libreria GNU standard          èèèèèèèèèèèèèèèèèèèèa
+libreria GNU standard          èèèèèèèèèèèèèèèèèèèèè
 del  C; concentratevi          èèèèèèèèèèè.

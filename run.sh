@@ -16,4 +16,4 @@ run_test sample_inputs/capo_in.txt expected_outputs/capo_out.txt 3 7 15 1
 run_test sample_inputs/spacing_in.txt expected_outputs/spacing_out.txt 3 7 18 1
 run_test sample_inputs/spacing2_in.txt expected_outputs/spacing2_out.txt 3 7 18 1
 run_test sample_inputs/super_short_in.txt expected_outputs/super_short_out.txt 3 7 21 1
-run_test sample_inputs/utf8_ending_in.txt expected_outputs/utf8_ending_out.txt 3 7 21 1
+run_test sample_inputs/utf8_ending_in.txt expected_outputs/utf8_ending_out.txt 3 7 4 1

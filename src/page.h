@@ -264,6 +264,32 @@ int read_chunk(FILE* input_file, char** line_chunk_content, int* w_col, long* ba
         fseek(input_file, next_pos, SEEK_SET);
     }
 
+
+
+    long curr_pos = ftell(input_file);
+    char last_char = fgetc(input_file);
+
+    if (is_utf8((unsigned char) last_char)) {
+
+                // printf("random op");
+    (*line_chunk_content)[*w_col + *unicode_offset] = last_char;
+                    *unicode_offset += 1;
+
+                    // il buffer deve essere aumentato di 1 byte, per ogni carattere
+                    // unicode incontrato all'interno del chunk
+                    char* larger_chunk = realloc(*line_chunk_content, *w_col + *unicode_offset + 1);
+
+                    if (larger_chunk == NULL) {
+                        return ALLOC_ERROR;
+                    }
+
+                    larger_chunk[*w_col + *unicode_offset] = '\0';
+
+                    *line_chunk_content = larger_chunk; // realloc non garantisce che il puntatore sia lo stesso
+    } else {
+        fseek(input_file, curr_pos, SEEK_SET);
+    }
+
     // alla larghezza della colonna corrente viene aggiunto il numero di
     // caratteri unicode che sono stati incontrati, per poter effettuare
     // le prossime operazioni correttamente

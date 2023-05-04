@@ -50,7 +50,7 @@ int main(int argc, char* argv[]) {
 
     FILE* input_file = fopen(input_path, "r");
 
-    // cols = 3; h_col = 40; w_col = 21; spacing = 10; input_file = fopen("../sample_inputs/spacing_in.txt", "r");
+    // cols = 3; h_col = 40; w_col = 4; spacing = 10; input_file = fopen("../sample_inputs/utf8_ending_in.txt", "r");
 
     if (input_file == NULL) {
         fprintf(stderr, "An error occurred while trying to open the input file '%s'.\n", input_path);
