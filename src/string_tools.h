@@ -337,6 +337,8 @@ void justify_string(char* string, int len) {
     // sempre per la garanzia per cui gli intervalli sono costituiti da 1 spazio
     int ratio = round_division(spaces_end, spaces_inside);
 
+    // TODO: VA FIXATO IL BUG DEL RESTO (non so come)
+
     // se l'arrotondamento della divisione ha prodotto un rapporto pari a 0,
     // l'algoritmo non è in grado di funzionare correttamente, e dunque è necessario
     // arrotondare per eccesso in questo caso particolare

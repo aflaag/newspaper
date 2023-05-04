@@ -38,6 +38,8 @@ echo -n "Test 5: "
 ./newspaper sample_inputs/spacing_in.txt output.txt 3 7 18 1
 python tester.py output.txt expected_outputs/spacing_out.txt
 
+exit
+
 flush_output
 
 echo -n "Test 6: "
