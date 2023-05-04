@@ -14,8 +14,8 @@ todo desc
 
 ### List
 
+- RISCRIVI LA COSA DEL REMINDER, SIA COME CODICE CHE COME COMMENTI
 - NON FUNZIONA QUANDO UNA PAROLA È LARGA QUANTO W E L'ULTIMO CARATTERE È UTF-8, INVESTIGA
-- fai bene i test cosi posso testarlo sistematicamente
 - rendere const tutto quello che dovrebbe esserlo
 - rendere unsigned tutto quello che dovrebbe esserlo
 - fai gli headers fatti bene
