@@ -1,7 +1,5 @@
 #include "args.h"
 
-#include "string_tools.h"
-
 // TODO: mettere nella doc che se il file è NULL restituisce true
 bool is_file_empty(FILE* file) {
     if (file != NULL) {
