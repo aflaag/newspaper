@@ -155,7 +155,8 @@ bool no_spaces(char* string, int len) {
     La funzione restituisce la divisione, arrotondata correttamente, tra gli interi positivi forniti.
 */
 int round_division(unsigned int x, unsigned int y) {
-    return (x + (y / 2)) / y;
+    // return (x + (y / 2)) / y;
+    return x / y;
 }
 
 /*
@@ -201,7 +202,9 @@ int min(int x, int y) {
 }
 
 int evaluate_curr_spaces(int spaces_end, int spaces_inside, int spaces_done, int ratio) {
-    return ratio + 1 == spaces_end && spaces_done + 1 == spaces_inside ? ratio + 1 : min(spaces_end, ratio);
+    // return ratio + 1 == spaces_end && spaces_done + 1 == spaces_inside ? ratio + 1 : min(spaces_end, ratio);
+    // return ratio;
+    return min(ratio, spaces_end);
 }
 
 void enqueue(char queue[], int len, int* head, int* tail, char element) {
@@ -230,7 +233,7 @@ void slide_characters(char* string, int len, int spaces_end, int spaces_inside, 
     int head = 0;
     int tail = 0;
 
-    char queue[len];
+    char queue[len]; // TODO: CONTROLLARE CHE LA LUNGHEZZA IN INPUT SIA CORRETTA
 
     pad_string(queue, 0, len, '\0');
 
@@ -239,8 +242,9 @@ void slide_characters(char* string, int len, int spaces_end, int spaces_inside, 
     for (int i = 1; i < len; i++) {
         char DEBUG = string[i];
         if (tail != 0) {
+            // TODO: QUA CONTROLLARE A CHE SERVE STA ROBA CHE NON MI RICORDO
             if ((is_char(string[i]) && !is_char(queue[tail - 1])) || !is_char(queue[head])) {
-                while (is_char(queue[head])) {
+                while (is_char(queue[head]) || (!is_char(queue[head]) && is_char(queue[head + 1]))) {
                     enqueue(queue, len, &head, &tail, string[i]);
 
                     string[i] = dequeue(queue, len, &head, &tail);
@@ -337,22 +341,26 @@ void justify_string(char* string, int len) {
     // sempre per la garanzia per cui gli intervalli sono costituiti da 1 spazio
     int ratio = round_division(spaces_end, spaces_inside);
 
+    int remainder = spaces_end % spaces_inside;
+
     // TODO: VA FIXATO IL BUG DEL RESTO (non so come)
 
     // se l'arrotondamento della divisione ha prodotto un rapporto pari a 0,
     // l'algoritmo non è in grado di funzionare correttamente, e dunque è necessario
     // arrotondare per eccesso in questo caso particolare
     if (ratio == 0) {
-        ratio = 1;
+        ratio = remainder;
     }
 
-    slide_characters(string, len, spaces_end, spaces_inside, ratio);
+    slide_characters(string, len - remainder, spaces_end, spaces_inside, ratio);
+
+    justify_string(string, len);
 }
 
 /*
     La funzione restituisce n^exp.
 */
-int powi(int n, int exp) {
+int powi(int n, unsigned int exp) {
     int tot = 1;
 
     for (int i = 0; i < exp; i++) {

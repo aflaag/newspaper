@@ -28,7 +28,7 @@ int main(int argc, char* argv[]) {
 
     switch (args_err) {
         case NOT_ENOUGH_ARGS:
-            fprintf(stderr, "Not enough argument passed, 7 arguments expected.\n\nSee '--help' for more information.\n");
+            fprintf(stderr, "Not enough argument passed, 6 arguments expected.\n\nSee '--help' for more information.\n");
             break;
         case CHARS_IN_NUMERIC_ARG:
             fprintf(stderr, "The last 4 arguments are expected to be strictly positive integers, but non-digits characters where found.\n\nSee '--help' for more information.\n");
@@ -50,7 +50,7 @@ int main(int argc, char* argv[]) {
 
     FILE* input_file = fopen(input_path, "r");
 
-    // cols = 3; h_col = 40; w_col = 21; spacing = 10; input_file = fopen("../utf8_text.txt", "r");
+    // cols = 3; h_col = 40; w_col = 21; spacing = 10; input_file = fopen("../sample_inputs/utf8_prof_in.txt", "r");
 
     if (input_file == NULL) {
         fprintf(stderr, "An error occurred while trying to open the input file '%s'.\n", input_path);
@@ -89,10 +89,10 @@ int main(int argc, char* argv[]) {
             break;
         case INSUFFICIENT_WIDTH:
             fprintf(stderr, "WIDTH: TODO ERROR HANDLING\n");
-            break;
+            // break;
         case INVALID_INPUT:
             fprintf(stderr, "INVALID INPUT: TODO ERROR HANDLING\n");
-            break;
+            // break;
         case PAGE_SUCCESS:
             print_pages(output_file, pages, spacing, "\n%%%\n\n", ' ');
             break;
