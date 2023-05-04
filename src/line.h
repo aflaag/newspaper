@@ -6,13 +6,21 @@
 #ifndef LINE_H
 #define LINE_H
 
+/*
+    Struttura dati che rappresenta le righe dell'output del programa
+    attraverso una lista puntata (all'interno di ogni pagina).
+*/
 typedef struct {
-    struct LineChunk* line_chunks_head;
-    struct LineChunk* curr_line_chunk;
+    struct LineChunk* line_chunks_head; // il puntatore alla testa della lista puntata dei chunk della riga
+    struct LineChunk* curr_line_chunk; // il puntatore al chunk corrente
 
-    struct Line* next_line;
+    struct Line* next_line; // il puntatore alla prossima riga
 } Line;
 
+/*
+    La funzione crea una nuova riga, a partire dal chunk fornito in input;
+    la funzione restituisce NULL se non è stato possibile allocare la riga.
+*/
 Line* new_line(LineChunk* line_chunk) {
     Line* new_line = calloc(1, sizeof(Line));
 
@@ -28,6 +36,11 @@ Line* new_line(LineChunk* line_chunk) {
     return new_line;
 }
 
+/*
+    La funzione crea una nuova riga, e aggiorna l'attributo 'next_line' della riga
+    fornita in input con la riga appena creata; restituisce NULL se non è stato possibile
+    allocare la nuova riga.
+*/
 Line* append_line(Line* curr_line, LineChunk* line_chunk) {
     Line* next_line = new_line(line_chunk);
 
@@ -42,18 +55,43 @@ Line* append_line(Line* curr_line, LineChunk* line_chunk) {
     return next_line;
 }
 
+/*
+    La funzione modifica il puntatore alla testa della lista puntata dei chunk,
+    col puntatore al chunk corrente, solamente se il puntatore alla testa era NULL.
+*/
 void set_line_chunks_head(Line* line) {
     if (line != NULL && line->line_chunks_head == NULL) {
         line->line_chunks_head = line->curr_line_chunk;
     }
 }
 
-void append_line_chunk_and_advance(Line** line_ptr, char* line_chunk_content) {
-    if (line_ptr != NULL && *line_ptr != NULL) {
-        (*line_ptr)->curr_line_chunk = (struct LineChunk*) append_line_chunk((LineChunk*) (*line_ptr)->curr_line_chunk, line_chunk_content);
+/*
+    La funzione prende in input un Line**, ed il contenuto di un chunk, ed effettua
+    2 operazioni: viene creato un nuovo chunk alla riga corrente, e viene avanzato
+    il puntatore del chunk corrente al nuovo chunk appena aggiunto; la funzione restituisce
+    NULL se non è stato possibile allocare il nuovo chunk, altrimenti restituisce il chunk creato.
+*/
+LineChunk* append_line_chunk_and_advance(Line** line_ptr, char* line_chunk_content) {
+    if (line_ptr == NULL || *line_ptr == NULL) {
+        return NULL;
     }
+
+    LineChunk* new_line_chunk = (LineChunk*) append_line_chunk((LineChunk*) (*line_ptr)->curr_line_chunk, line_chunk_content);
+
+    if (new_line_chunk == NULL) {
+        return NULL;
+    }
+
+    (*line_ptr)->curr_line_chunk = (struct LineChunk*) new_line_chunk;
+
+    return new_line_chunk;
 }
 
+/*
+    La funzione stampa su 'output_file' i chunk contenuti nella lista puntata fornita
+    in input, ricorsivamente; non viene stampato nulla se il carattere di separazione
+    tra le colonne è '\0'.
+*/
 void print_line(FILE* output_file, Line* line, int spacing, char spacing_char) {
     if (output_file == NULL || line == NULL || spacing == 0 || spacing_char == '\0') {
         return;
@@ -66,6 +104,9 @@ void print_line(FILE* output_file, Line* line, int spacing, char spacing_char) {
 
         LineChunk* next_line_chunk = (LineChunk*) curr_line_chunk->next_line_chunk;
 
+        // questo controllo assicura che non venga
+        // stampato il separatore tra chunk anche
+        // dopo l'ultimo chunk della lista puntata
         if (next_line_chunk != NULL) {
             for (int i = 0; i < spacing; i++) {
                 fprintf(output_file, "%c", spacing_char);
@@ -78,6 +119,7 @@ void print_line(FILE* output_file, Line* line, int spacing, char spacing_char) {
     fprintf(output_file, "\n");
 }
 
+// TODO: TESTALA PRIMA
 void free_lines(Line* line) {
     if (line == NULL) {
         return;

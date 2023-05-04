@@ -86,7 +86,7 @@ void advance_curr_line(Page* page) {
 /*
     La funzione prende in input una pagina, e ne setta il puntatore alla testa
     della lista puntata delle righe, con il puntatore della riga corrente, solamente
-    se il puntatore alla testa non era NULL.
+    se il puntatore alla testa era NULL.
 */
 void set_lines_head(Page* page) {
     if (page != NULL && page->lines_head == NULL && page->curr_line != NULL) {
@@ -109,7 +109,7 @@ void reset_lines_head(Page* page) {
 /*
     La funzione prende in input un Page**, ed un chunk di riga, ed effettua
     2 operazioni: viene creata una nuova riga alla pagina corrente, e viene avanzato
-    il puntatore della riga corrente alla nuova riga appena aggiunta; restituisce
+    il puntatore della riga corrente alla nuova riga appena aggiunta; la funzione restituisce
     NULL se non è stato possibile allocare la nuova riga, altrimenti restituisce la riga creata.
 */
 Line* append_line_and_advance(Page** page_ptr, LineChunk* line_chunk) {

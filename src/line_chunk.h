@@ -7,12 +7,20 @@
 #ifndef LINE_CHUNK_H
 #define LINE_CHUNK_H
 
+/*
+    Struttura dati che rappresenta le righe delle colonen dell'output del programma
+    attraverso una lista puntata (all'interno di ogni riga).
+*/
 typedef struct {
-    char* content;
+    char* content; // la stringa contenuta nel chunk
 
-    struct LineChunk* next_line_chunk;
+    struct LineChunk* next_line_chunk; // il puntatore al prossimo chunk della lista puntata
 } LineChunk;
 
+/*
+    La funzione crea un nuovo chunk, a partire dalla stringa fornita in input;
+    la funzione restituisce NULL se non è stato possibile allocare il nuovo chunk.
+*/
 LineChunk* new_line_chunk(char* content) {
     LineChunk* new_line_chunk = calloc(1, sizeof(LineChunk));
 
@@ -26,6 +34,11 @@ LineChunk* new_line_chunk(char* content) {
     return new_line_chunk;
 }
 
+/*
+    La funzione crea un nuovo chunk, e aggiorna l'attributo 'next_line_chunk' del chunk
+    fornito in input con il chunk appena creato; restituisce NULL se non è stato possibile
+    allocare il nuovo chunk.
+*/
 LineChunk* append_line_chunk(LineChunk* curr_line_chunk, char* content) {
     LineChunk* next_line_chunk = new_line_chunk(content);
 
@@ -40,6 +53,10 @@ LineChunk* append_line_chunk(LineChunk* curr_line_chunk, char* content) {
     return next_line_chunk;
 }
 
+/*
+    La funzione, se non ha ricevuto in input puntatori a NULL, stampa sul file di output fornito
+    la stringa contenuta all'interno del chunk in input (se non è NULL anch'esso).
+*/
 void print_line_chunk(FILE* output_file, LineChunk* line_chunk) {
     if (output_file == NULL || line_chunk == NULL) {
         return;
@@ -50,6 +67,7 @@ void print_line_chunk(FILE* output_file, LineChunk* line_chunk) {
     }
 }
 
+// TODO: TESTALA PRIMA
 void free_line_chunks(LineChunk* line_chunk) {
     if (line_chunk == NULL) {
         return;
