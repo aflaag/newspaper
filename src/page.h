@@ -405,7 +405,7 @@ int build_pages(FILE* input_file, Page* curr_page, int cols, int h_col, int w_co
 
             if (trunc_err != TRUNCATED_HANDLING_SUCCESS) {
                 if (trunc_err != INVALID_INPUT) {
-                    free(line_chunk_content); // TODO: CONTROLLARE CHE NON SERVA ALTROVE (PROBABILMENTE SERVE SOTTO MA NON LO SO)
+                    free(line_chunk_content);
                 }
                 
                 curr_page = first_page;
