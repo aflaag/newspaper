@@ -246,15 +246,13 @@ int read_chunk(FILE* input_file, char** line_chunk_content, int* w_col, long* ba
 
                     // il buffer deve essere aumentato di 1 byte, per ogni carattere
                     // unicode incontrato all'interno del chunk
-                    char* larger_chunk = realloc(*line_chunk_content, *w_col + *unicode_offset + 1);
+                    char* new_line_chunk_content = string_realloc(*line_chunk_content, *w_col + *unicode_offset);
 
-                    if (larger_chunk == NULL) {
+                    if (new_line_chunk_content == NULL) {
                         return ALLOC_ERROR;
                     }
 
-                    larger_chunk[*w_col + *unicode_offset] = '\0';
-
-                    *line_chunk_content = larger_chunk; // realloc non garantisce che il puntatore sia lo stesso
+                    *line_chunk_content = new_line_chunk_content;
                 }
             }
         } else {
@@ -264,29 +262,35 @@ int read_chunk(FILE* input_file, char** line_chunk_content, int* w_col, long* ba
         fseek(input_file, next_pos, SEEK_SET);
     }
 
-
-
     long curr_pos = ftell(input_file);
     char last_char = fgetc(input_file);
 
+    // i caratteri multibyte utf-8 contengono byte "di controllo" che permettono
+    // di rappresentare molti più caratteri della tabella ASCII standard; tali byte
+    // hanno i primi due bit pari a 0b10, ma il problema è che tali byte non sono mai
+    // i primi del carattere multibyte; questo crea un problema all'interno del ciclo di
+    // lettura del chunk, poiché questo termina quando l'indice corrente raggiunge 
+    // w_col + invalid_offset + unicode_offset, e unicode_offset viene incrementato di 1
+    // per ogni carattere utf-8 che viene incontrato, e dunque se una riga termina con un
+    // carattere utf-8 multibyte, il ciclo termina prima di leggerne tutti i suoi byte,
+    // perche non vedrà l'ultimo byte utf-8, uscendo prima (perche unicode_offset non può essere
+    // incrementato poiché non è stato ancora visto il byte da leggere), corrompendo il contenuto
+    // della riga; è dunque necessario accertarsi che il prossimo byte, al termine del ciclo,
+    // non sia un byte utf-8, e in tal caso va inserito nel chunk corrente
     if (is_utf8((unsigned char) last_char)) {
+        (*line_chunk_content)[*w_col + *unicode_offset] = last_char;
 
-                // printf("random op");
-    (*line_chunk_content)[*w_col + *unicode_offset] = last_char;
-                    *unicode_offset += 1;
+        *unicode_offset += 1;
 
-                    // il buffer deve essere aumentato di 1 byte, per ogni carattere
-                    // unicode incontrato all'interno del chunk
-                    char* larger_chunk = realloc(*line_chunk_content, *w_col + *unicode_offset + 1);
+        char* new_line_chunk_content = string_realloc(*line_chunk_content, *w_col + *unicode_offset);
 
-                    if (larger_chunk == NULL) {
-                        return ALLOC_ERROR;
-                    }
+        if (new_line_chunk_content == NULL) {
+            return ALLOC_ERROR;
+        }
 
-                    larger_chunk[*w_col + *unicode_offset] = '\0';
-
-                    *line_chunk_content = larger_chunk; // realloc non garantisce che il puntatore sia lo stesso
+        *line_chunk_content = new_line_chunk_content;
     } else {
+        // se l'ultimo carattere non era utf-8, va resettata la posizione corrente nel file
         fseek(input_file, curr_pos, SEEK_SET);
     }
 

@@ -361,6 +361,27 @@ void justify_string(char* string, int len) {
 }
 
 /*
+    La funzione prende in input un puntatore ad una stringa, e la nuova dimensione che le si vuole fornire,
+    e ritorna, se possibile, un puntatore ad una stringa con la dimensione richiesta, con lo stesso
+    contenuto della stringa in input; la funzione non effettua controlli sulla dimensione della stringa.
+*/
+char* string_realloc(char* string, int new_size) {
+    if (string == NULL) {
+        return NULL;
+    }
+
+    char* larger_chunk = realloc(string, new_size + 1); // null byte
+
+    if (larger_chunk == NULL) {
+        return NULL;
+    }
+
+    larger_chunk[new_size] = '\0';
+
+    return larger_chunk;
+}
+
+/*
     La funzione restituisce n^exp.
 */
 int powi(int n, unsigned int exp) {

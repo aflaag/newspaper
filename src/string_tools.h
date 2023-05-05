@@ -35,6 +35,8 @@ char dequeue(char queue[], int len, int* head, int* tail);
 void slide_characters(char* string, int len, int spaces_end, int spaces_inside, int ratio, int remainder);
 void justify_string(char* string, int len);
 
+char* string_realloc(char* string, int new_size);
+
 int powi(int n, unsigned int exp);
 int pos_atoi(char* str, int len, unsigned int* number);
 
