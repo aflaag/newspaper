@@ -1,28 +1,25 @@
 CC := gcc
-OBJ_DIR := bin
+
+TARGET := newspaper
+
+OBJ_DIR := objdir
 ROOT_DIR := src
 
-newspaper: main.o args.o line_chunk.o line.o page.o string_tools.o
-	$(CC) -o newspaper $(OBJ_DIR)/main.o $(OBJ_DIR)/args.o $(OBJ_DIR)/line_chunk.o $(OBJ_DIR)/line.o $(OBJ_DIR)/page.o $(OBJ_DIR)/string_tools.o
+SOURCES := $(wildcard $(ROOT_DIR)/*.c)
+OBJECTS := $(patsubst $(ROOT_DIR)/%.c, $(OBJ_DIR)/%.o, $(SOURCES))
 
-main.o: $(ROOT_DIR)/main.c
-	$(CC) -c $(ROOT_DIR)/main.c -o $(OBJ_DIR)/main.o
+all: dirs $(TARGET)
 
-args.o: $(ROOT_DIR)/args.c $(ROOT_DIR)/args.h
-	$(CC) -c $(ROOT_DIR)/args.c -o $(OBJ_DIR)/args.o
+dirs:
+	@mkdir -p $(OBJ_DIR)
 
-line_chunk.o: $(ROOT_DIR)/line_chunk.c $(ROOT_DIR)/line_chunk.h
-	$(CC) -c $(ROOT_DIR)/line_chunk.c -o $(OBJ_DIR)/line_chunk.o
+$(OBJ_DIR)/%.o: $(ROOT_DIR)/%.c
+	$(CC) -c $< -o $@
 
-line.o: $(ROOT_DIR)/line.c $(ROOT_DIR)/line.h
-	$(CC) -c $(ROOT_DIR)/line.c -o $(OBJ_DIR)/line.o
+$(TARGET): $(OBJECTS)
+	$(CC) $^ -o $@
 
-page.o: $(ROOT_DIR)/page.c $(ROOT_DIR)/page.h
-	$(CC) -c $(ROOT_DIR)/page.c -o $(OBJ_DIR)/page.o
-
-string_tools.o: $(ROOT_DIR)/string_tools.c $(ROOT_DIR)/string_tools.h
-	$(CC) -c $(ROOT_DIR)/string_tools.c -o $(OBJ_DIR)/string_tools.o
-
-.PHONY: clean
 clean:
-	rm -f $(OBJ_DIR)/*.o newspaper
+	@rm -rf $(OBJ_DIR) $(TARGET)
+
+.PHONY: all dir clean

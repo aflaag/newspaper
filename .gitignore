@@ -1,5 +1,10 @@
-newspaper
+# vscode
 /.vscode
 src/main
+
+# makefile
+/objdir
+newspaper
+
+# others
 output.txt
-/bin
