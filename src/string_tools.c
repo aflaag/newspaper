@@ -258,7 +258,7 @@ void put_spaces_and_enqueue(int ratio, int* remainder, char* string, char* queue
         *i += 1;
     }
 
-    *i -= 1; // TODO: NON SO PERCHE SERVE
+    *i -= 1;
 }
 
 /*

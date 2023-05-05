@@ -24,8 +24,6 @@ int main(int argc, char* argv[]) {
     char* output_path;
     
     int args_err = parse_args(argc, argv, &input_path, &output_path, &cols, &h_col, &w_col, &spacing);
-    // TODO: DEBUG
-    // int args_err = 0;
 
     switch (args_err) {
         case NOT_ENOUGH_ARGS:
@@ -50,9 +48,6 @@ int main(int argc, char* argv[]) {
 
     FILE* input_file = fopen(input_path, "r");
 
-    // TODO: DEBUG
-    // cols = 3; h_col = 40; w_col = 4; spacing = 10; input_file = fopen("/home/aless/Desktop/codes/misc/c/newspaper/sample_inputs/utf8_ending_in.txt", "r");
-
     if (input_file == NULL) {
         fprintf(stderr, "An error occurred while trying to open the input file '%s'.\n", input_path);
         return INVALID_INPUT_FILE;
@@ -73,7 +68,6 @@ int main(int argc, char* argv[]) {
     }
 
     FILE* output_file = fopen(output_path, "a");
-    // output_file = fopen("/home/aless/Desktop/codes/misc/c/newspaper/output.txt", "a"); // TODO: DEBUG
 
     if (output_file == NULL) {
         fprintf(stderr, "An error occurred while trying to open the output file '%s'.\n", output_path);

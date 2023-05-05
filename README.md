@@ -1,10 +1,12 @@
 # newspaper
 
-todo desc
+TODO: DESC
 
 ## TODO
 
 - capire come funzionano gli includes negli headers (?!)
-- rendere const tutto quello che dovrebbe esserlo
-- commenta le costanti (?)
-- RICONTROLLA TUTTO QUELLO CHE C'È SCRITTO NEL TESTO (intesa la traccia)
+- commenta le costanti
+- fare questo readme
+  - git clone
+  - make
+  - usage
