@@ -3,16 +3,16 @@
 #include "args.h"
 #include "page.h"
 
-#define PROGRAM_SUCCESS 0
-#define INVALID_INPUT_FILE -1
-#define INVALID_OUTPUT_FILE -2
-#define NON_EMPTY_OUTPUT_FILE -3
-#define ARGS_FAILURE -4
-#define ALLOCATION_FAILURE -5
-#define INPUT_FILE_CLOSING_FAILURE -6
-#define OUTPUT_FILE_CLOSING_FAILURE -7
-#define INVALID_INPUT_TEXT -8
-#define UNKNOWN_ERROR -9
+#define PROGRAM_SUCCESS 0 // restituita se il prorgamma ha completato le operazioni con successo
+#define INVALID_INPUT_FILE -1 // restituita se non è stato possibile aprire il file di input nel percorso specificato
+#define INVALID_OUTPUT_FILE -2 // restituita se non è stato possibile aprire il file di output nel percorso specificato
+#define NON_EMPTY_OUTPUT_FILE -3 // restituita se il file di output specificato non è vuoto
+#define ARGS_FAILURE -4 // restituita se è stato riscrontrato un errore negli argomenti forniti al programma
+#define ALLOCATION_FAILURE -5 // restituita se ci sono stati degli errori durante le allocazioni nel progamma
+#define INPUT_FILE_CLOSING_FAILURE -6 // restituita se non è stato possibile chiudere il file di input
+#define OUTPUT_FILE_CLOSING_FAILURE -7 // restituita se non è stato possibile chiudere il file di output
+#define INVALID_INPUT_TEXT -8 // restituita se il file di input conteneva parole più larghe della larghezza di colonna specificata
+#define UNKNOWN_ERROR -9 // restituita se si sono verificati errori di natura ignota
 
 int main(int argc, char* argv[]) {
     int cols;
@@ -100,11 +100,11 @@ int main(int argc, char* argv[]) {
             break;
         case INSUFFICIENT_WIDTH:
             fprintf(stderr, "The file given as input contains words that are larger than the width provided.\n\nSee '--help' for more information\n");
-            // break;
+            break;
         case INVALID_INPUT:
         case FSEEK_ERROR:
             fprintf(stderr, "An error occurred while running the program.\n");
-            // break;
+            break;
         case PAGE_SUCCESS:
             print_pages(output_file, pages, spacing, "\n%%%\n\n", ' ');
             break;

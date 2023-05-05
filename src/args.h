@@ -3,10 +3,10 @@
 
 #include "string_tools.h"
 
-#define ARGS_SUCCESS 0
-#define NOT_ENOUGH_ARGS -1
-#define CHARS_IN_NUMERIC_ARG -2
-#define ZERO_INTEGER -3
+#define ARGS_SUCCESS 0 // restituita se non sono stati riscontrati problemi nel parsing degli argomenti
+#define NOT_ENOUGH_ARGS -1 // restituita se il numero di argomenti passati al programma non era sufficiente
+#define CHARS_IN_NUMERIC_ARG -2 // restituita se gli argomenti che dovrebbero contenere solamente cifre, non erano validi
+#define ZERO_INTEGER -3 // restituita se almeno un intero in input conteneva un valore nullo
 #define PRINT_HELP -4
 
 #ifndef ARGS_H
