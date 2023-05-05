@@ -156,14 +156,6 @@ bool no_spaces(char* string, int len) {
 }
 
 /*
-    La funzione restituisce la divisione, arrotondata correttamente, tra gli interi positivi forniti.
-*/
-int round_division(unsigned int x, unsigned int y) {
-    // return (x + y / 2) / y;
-    return x / y;
-}
-
-/*
     La funzione restituisce il numero di caratteri della stringa fornita input; la funzione non effettua
     controlli sul puntatore della stringa in input, né sulla lunghezza fornita.
 */
@@ -198,21 +190,6 @@ int count_words(char* string, int len) {
     return words;
 }
 
-/*
-    La funzione restituisce il minimo tra 'x' ed 'y'.
-*/
-int min(int x, int y) {
-    return (x < y) ? x : y;
-}
-
-int evaluate_curr_spaces(int spaces_end, int spaces_inside, int spaces_done, int ratio) {
-    // return ratio + 1 == spaces_end && spaces_done + 1 == spaces_inside ? ratio + 1 : min(spaces_end, ratio);
-    return ratio;
-    // return min(ratio, spaces_end);
-
-    // return ratio <= spaces_end ? ratio : 0;
-}
-
 void enqueue(char queue[], int len, int* head, int* tail, char element) {
     if (*tail >= 0 && *tail < len - 1) {
         queue[*tail] = element;
@@ -235,23 +212,27 @@ char dequeue(char queue[], int len, int* head, int* tail) {
     }
 }
 
-void slide_characters(char* string, int len, int spaces_end, int spaces_inside, int ratio, int remainder) {
+void slide_characters(char* string, int len, int spaces_end, int spaces_inside) {
+    // il numero di spazi per buco tra parole, è pari al numero di spazi alla fine della riga,
+    // diviso per il numero di buchi; naturalmente tale rapporto può non avere resto 0, e dunque
+    // è necessario arrotondare il rapporto per difetto, e gestire il resto della divisione
+    // come se fossero ulteriori spazi da ridistribuire
+    int ratio = spaces_end / spaces_inside;
+    int remainder = spaces_end % spaces_inside;
+
     int head = 0;
     int tail = 0;
 
-    char queue[len]; // TODO: CONTROLLARE CHE LA LUNGHEZZA IN INPUT SIA CORRETTA
-
+    // viene creata una coda lunga pari alla lunghezza fornita in input,
+    // e viene riempita di '\0' completamente; tale carattere sarà usato dall'algoritmo
+    // per sapere se un certo slot della coda è disponibile o meno
+    char queue[len]; // TODO: dire che non faccio controlli sull'input
     pad_string(queue, 0, len, '\0');
 
-    int spaces_done = 0;
-
     for (int i = 1; i < len; i++) {
-        char DEBUG = string[i];
         if (tail != 0) {
-            // TODO: QUA CONTROLLARE A CHE SERVE STA ROBA CHE NON MI RICORDO
             if ((is_char(string[i]) && !is_char(queue[tail - 1])) || !is_char(queue[head])) {
                 while (is_char(queue[head])) {
-                // while (is_char(queue[head]) || (!is_char(queue[head]) && is_char(queue[head + 1]))) {
                     enqueue(queue, len, &head, &tail, string[i]);
 
                     string[i] = dequeue(queue, len, &head, &tail);
@@ -263,7 +244,7 @@ void slide_characters(char* string, int len, int spaces_end, int spaces_inside, 
                 string[i] = dequeue(queue, len, &head, &tail);
                 i++;
                 
-                int curr_spaces = evaluate_curr_spaces(spaces_end, spaces_inside, spaces_done, ratio);
+                int curr_spaces = ratio;
 
                 if (remainder != 0) {
                     curr_spaces++;
@@ -281,8 +262,6 @@ void slide_characters(char* string, int len, int spaces_end, int spaces_inside, 
 
                     i++;
                 }
-
-                spaces_done++;
 
                 i--;
             } else {
@@ -290,31 +269,27 @@ void slide_characters(char* string, int len, int spaces_end, int spaces_inside, 
 
                 string[i] = dequeue(queue, len, &head, &tail);
             }
-        } else {
-            if (is_char(string[i]) && !is_char(string[i - 1])) {
-                int curr_spaces = evaluate_curr_spaces(spaces_end, spaces_inside, spaces_done, ratio);
+        } else if (is_char(string[i]) && !is_char(string[i - 1])) {
+            int curr_spaces = ratio;
 
-                if (remainder != 0) {
-                    curr_spaces++;
-                    remainder--;
-                }
-
-                spaces_end -= curr_spaces;
-
-                while (curr_spaces > 0) {
-                    enqueue(queue, len, &head, &tail, string[i]);
-
-                    string[i] = ' ';
-
-                    curr_spaces--;
-
-                    i++;
-                }
-
-                spaces_done++;
-
-                i--;
+            if (remainder != 0) {
+                curr_spaces++;
+                remainder--;
             }
+
+            spaces_end -= curr_spaces;
+
+            while (curr_spaces > 0) {
+                enqueue(queue, len, &head, &tail, string[i]);
+
+                string[i] = ' ';
+
+                curr_spaces--;
+
+                i++;
+            }
+
+            i--;
         }
     }
 }
@@ -353,30 +328,7 @@ void justify_string(char* string, int len) {
         return;
     }
 
-    // il numero di spazi da ridistribuire per ogni intervallo
-    // è pari al numero di spazi alla fine, diviso per il numero di intervalli,
-    // sempre per la garanzia per cui gli intervalli sono costituiti da 1 spazio
-    int ratio = round_division(spaces_end, spaces_inside);
-
-    int remainder = spaces_end % spaces_inside;
-
-    // TODO: VA FIXATO IL BUG DEL RESTO (non so come)
-
-    // se l'arrotondamento della divisione ha prodotto un rapporto pari a 0,
-    // l'algoritmo non è in grado di funzionare correttamente, e dunque è necessario
-    // arrotondare per eccesso in questo caso particolare
-    // if (ratio == 0) {
-        // ratio = remainder;
-        // ratio = 1;
-    // }
-
-    slide_characters(string, len, spaces_end, spaces_inside, ratio, remainder);
-
-    // if (strlen(string) != 21) {
-    //     printf("%s - %d\n", string, strlen(string));
-    // }
-
-    // justify_string(string, len);
+    slide_characters(string, len, spaces_end, spaces_inside);
 }
 
 /*

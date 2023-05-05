@@ -26,14 +26,11 @@ void pad_string(char* string, unsigned int start, unsigned int end, char charact
 int truncate_string(char** string, int new_size);
 long replace_truncated_chars(char* line_chunk_content, int* w_col, char replacement);
 
-int round_division(unsigned int x, unsigned int y);
 int count_words(char* string, int len);
-int min(int x, int y);
-int evaluate_curr_spaces(int spaces_end, int spaces_inside, int spaces_done, int ratio);
 
 void enqueue(char queue[], int len, int* head, int* tail, char element);
 char dequeue(char queue[], int len, int* head, int* tail);
-void slide_characters(char* string, int len, int spaces_end, int spaces_inside, int ratio, int remainder);
+void slide_characters(char* string, int len, int spaces_end, int spaces_inside);
 void justify_string(char* string, int len);
 
 char* string_realloc(char* string, int new_size);

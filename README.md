@@ -4,7 +4,7 @@ todo desc
 
 ## TODO
 
-- capire come dovrebbe essere scritto il makefile
+- capire come far funzionare il makefile
 - capire come funzionano gli includes negli headers (?!)
 - RISCRIVI LA COSA DEL REMINDER, SIA COME CODICE CHE COME COMMENTI
 - rendere const tutto quello che dovrebbe esserlo
