@@ -48,7 +48,6 @@ int main(int argc, char* argv[]) {
         return ARGS_FAILURE;
     }
 
-
     FILE* input_file = fopen(input_path, "r");
 
     // TODO: DEBUG

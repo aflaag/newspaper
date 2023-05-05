@@ -7,7 +7,7 @@ run_test() {
     rm -f output.txt
     touch output.txt
 
-    echo -n "Test $1: "
+    printf "Test $1: "
     ./newspaper $1 output.txt $3 $4 $5 $6
 
     if command diff output.txt $2 &> /dev/null

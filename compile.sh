@@ -1,1 +1,1 @@
-gcc -o newspaper src/main.c src/line_chunk.c src/args.c src/string_tools.c src/line.c
+gcc -o newspaper src/main.c src/line_chunk.c src/args.c src/string_tools.c src/line.c src/page.c

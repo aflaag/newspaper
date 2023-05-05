@@ -24,7 +24,7 @@ void string_replace(char* string, char target, char replacement) {
     restituiscono true poiché considerati parte di parola.
 */
 bool is_char(char character) {
-    return character != ' ' && character != '\n' && character != '\0' && character != EOF && character != '\t';
+    return character != ' ' && character != '\n' && character != '\0' && character != EOF && character != '\t' && character != '\r';
 }
 
 /*
