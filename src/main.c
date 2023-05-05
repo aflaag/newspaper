@@ -23,8 +23,14 @@ int main(int argc, char* argv[]) {
     char* input_path;
     char* output_path;
     
-    int args_err = parse_args(argc, argv, &input_path, &output_path, &cols, &h_col, &w_col, &spacing);
-    // int args_err = 0; // TODO: DEBUG
+    bool debug = true;
+    // bool debug = false;
+
+    int args_err = 0;
+
+    if (!debug) {
+        args_err = parse_args(argc, argv, &input_path, &output_path, &cols, &h_col, &w_col, &spacing);
+    }
 
     switch (args_err) {
         case NOT_ENOUGH_ARGS:
@@ -49,8 +55,9 @@ int main(int argc, char* argv[]) {
 
     FILE* input_file = fopen(input_path, "r");
 
-    // TODO: DEBUG
-    // cols = 3; h_col = 40; w_col = 21; spacing = 10; input_file = fopen("/home/aless/Desktop/codes/misc/c/newspaper/Makefile", "r");
+    if (debug) {
+        cols = 3; h_col = 40; w_col = 16; spacing = 10; input_file = fopen("/home/aless/Desktop/codes/misc/c/newspaper/Makefile", "r");
+    }
 
     if (input_file == NULL) {
         fprintf(stderr, "An error occurred while trying to open the input file '%s'.\n", input_path);
@@ -73,7 +80,9 @@ int main(int argc, char* argv[]) {
 
     FILE* output_file = fopen(output_path, "a");
 
-    // output_file = fopen("/home/aless/Desktop/codes/misc/c/newspaper/output.txt", "r"); // TODO: DEBUG
+    if (debug) {
+        output_file = fopen("/home/aless/Desktop/codes/misc/c/newspaper/output.txt", "a");
+    }
 
     if (output_file == NULL) {
         fprintf(stderr, "An error occurred while trying to open the output file '%s'.\n", output_path);
@@ -91,11 +100,11 @@ int main(int argc, char* argv[]) {
             break;
         case INSUFFICIENT_WIDTH:
             fprintf(stderr, "The file given as input contains words that are larger than the width provided.\n\nSee '--help' for more information\n");
-            break;
+            // break;
         case INVALID_INPUT:
         case FSEEK_ERROR:
             fprintf(stderr, "An error occurred while running the program.\n");
-            break;
+            // break;
         case PAGE_SUCCESS:
             print_pages(output_file, pages, spacing, "\n%%%\n\n", ' ');
             break;

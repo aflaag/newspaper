@@ -295,7 +295,7 @@ int handle_truncated_string(FILE* input_file, char** line_chunk_content, int* w_
 
     char fchar_next_line = fgetc(input_file); // primo carattere del chunk successivo
 
-    if (fseek(input_file, *base_idx, SEEK_SET)) {
+    if (*base_idx >= 0 && fseek(input_file, *base_idx, SEEK_SET)) {
         return FSEEK_ERROR;
     }
 

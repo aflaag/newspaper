@@ -147,7 +147,7 @@ bool no_spaces(char* string, int len) {
     }
 
     for (int i = 0; i < len; i++) {
-        if (string[i] == ' ') {
+        if (string[i] == ' ' || string[i] == '\n' || string[i] == '\t') {
             return false;
         }
     }
