@@ -91,10 +91,13 @@ int main(int argc, char* argv[]) {
             break;
         case INSUFFICIENT_WIDTH:
             fprintf(stderr, "WIDTH: TODO ERROR HANDLING\n");
-            // break;
+            break;
         case INVALID_INPUT:
             fprintf(stderr, "INVALID INPUT: TODO ERROR HANDLING\n");
-            // break;
+            break;
+        case FSEEK_ERROR:
+            fprintf(stderr, "FSEEK : todo \n");
+            break;
         case PAGE_SUCCESS:
             print_pages(output_file, pages, spacing, "\n%%%\n\n", ' ');
             break;
@@ -115,6 +118,7 @@ int main(int argc, char* argv[]) {
         case INSUFFICIENT_WIDTH:
             return INVALID_INPUT_TEXT;
         case INVALID_INPUT:
+        case FSEEK_ERROR:
             return UNKNOWN_ERROR;
         case PAGE_SUCCESS:
             break;

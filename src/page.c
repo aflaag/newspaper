@@ -229,7 +229,9 @@ int read_chunk(FILE* input_file, char** line_chunk_content, int* w_col, long* ba
             exit_code = ENDED_TEXT;
         }
 
-        fseek(input_file, next_pos, SEEK_SET);
+        if (fseek(input_file, next_pos, SEEK_SET)) {
+            return FSEEK_ERROR;
+        }
     }
 
     long curr_pos = ftell(input_file);
@@ -262,7 +264,9 @@ int read_chunk(FILE* input_file, char** line_chunk_content, int* w_col, long* ba
         *line_chunk_content = new_line_chunk_content;
     } else {
         // se l'ultimo carattere non era utf-8, va resettata la posizione corrente nel file
-        fseek(input_file, curr_pos, SEEK_SET);
+        if (fseek(input_file, curr_pos, SEEK_SET)) {
+            return FSEEK_ERROR;
+        }
     }
 
     // alla larghezza della colonna corrente viene aggiunto il numero di
@@ -285,11 +289,15 @@ int handle_truncated_string(FILE* input_file, char** line_chunk_content, int* w_
         return INVALID_INPUT;
     }
 
-    fseek(input_file, *base_idx + *w_col, SEEK_SET);
+    if (fseek(input_file, *base_idx + *w_col, SEEK_SET)) {
+        return FSEEK_ERROR;
+    }
 
     char fchar_next_line = fgetc(input_file); // primo carattere del chunk successivo
 
-    fseek(input_file, *base_idx, SEEK_SET);
+    if (fseek(input_file, *base_idx, SEEK_SET)) {
+        return FSEEK_ERROR;
+    }
 
     if (check_truncated_end(*line_chunk_content, *w_col, fchar_next_line)) {
         // se la parola alla fine del chunk corrente è troncata, ma la riga stessa non contiene spazi,
@@ -354,14 +362,14 @@ int build_pages(FILE* input_file, Page* curr_page, int cols, int h_col, int w_co
         if (!is_new_par) {
             end_value = read_chunk(input_file, &line_chunk_content, &w_col, &curr_pos, &unicode_offset);
 
-            if (end_value == ALLOC_ERROR) {
+            if (end_value == ALLOC_ERROR || end_value == FSEEK_ERROR) {
                 free(line_chunk_content);
 
                 // il puntatore della pagina viene comunque aggiornato, poichè sino al momento dell'errore,
                 // le pagine sono comunque state accomulate correttamente, ed è comunque possibile utilizzarle
                 curr_page = first_page;
 
-                return ALLOC_ERROR;
+                return end_value;
             } else if (end_value == INVALID_INPUT) {
                 // in questo branch, qualcosa è andato storto nel programma, e potrebbe essersi verificato che 
                 // l'area del chunk corrente non sia valida, e dunque liberarne la memoria potrebbe
@@ -498,7 +506,9 @@ int build_pages(FILE* input_file, Page* curr_page, int cols, int h_col, int w_co
         // viene incrementata la posizione nel file, sommando alla posizione corrente la larghezza
         // del chunk *scritto* (si noti che 'w_col' potrebbe subire modifiche all'interno del programma
         // a seconda del numero di byte letti)
-        fseek(input_file, curr_pos + w_col, SEEK_SET);
+        if (fseek(input_file, curr_pos + w_col, SEEK_SET)) {
+            return FSEEK_ERROR;
+        }
 
         // viene resettato il valore iniziale di w_col, rimuovendo il numero di byte unicode speciali letti
         w_col -= unicode_offset;

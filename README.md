@@ -4,9 +4,8 @@ todo desc
 
 ## TODO
 
-- far funzioanre il makefile
-- capire come funzionano gli includes negli headers?!
-- USA ERRNO
+- capire come dovrebbe essere scritto il makefile
+- capire come funzionano gli includes negli headers (?!)
 - RISCRIVI LA COSA DEL REMINDER, SIA COME CODICE CHE COME COMMENTI
 - rendere const tutto quello che dovrebbe esserlo
 - rendere unsigned tutto quello che dovrebbe esserlo

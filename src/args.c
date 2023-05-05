@@ -3,7 +3,9 @@
 // TODO: mettere nella doc che se il file è NULL restituisce true
 bool is_file_empty(FILE* file) {
     if (file != NULL) {
-        fseek(file, 0, SEEK_END);
+        if (fseek(file, 0, SEEK_END)) {
+            return false;
+        }
 
         if (ftell(file) != 0) {
             return false;

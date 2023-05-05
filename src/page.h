@@ -14,6 +14,7 @@
 #define INSUFFICIENT_WIDTH -1
 #define ALLOC_ERROR -2
 #define INVALID_INPUT -3
+#define FSEEK_ERROR -4
 
 #ifndef PAGE_H
 #define PAGE_H
