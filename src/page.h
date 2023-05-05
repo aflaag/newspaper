@@ -263,6 +263,7 @@ int read_chunk(FILE* input_file, char** line_chunk_content, int* w_col, long* ba
     }
 
     long curr_pos = ftell(input_file);
+
     char last_char = fgetc(input_file);
 
     // i caratteri multibyte utf-8 contengono byte "di controllo" che permettono
@@ -346,17 +347,6 @@ int handle_truncated_string(FILE* input_file, char** line_chunk_content, int* w_
     return TRUNCATED_HANDLING_SUCCESS;
 }
 
-bool is_empty(char* string, int len) {
-    for (int i = 0; i < len; i++) {
-        if (string[i] != '\0') {
-        // if (is_char(string[i]) && string[i] != ' ') {
-            return false;
-        }
-    }
-
-    return true;
-}
-
 // TODO: descrivi la struttura dati
 int build_pages(FILE* input_file, Page* curr_page, int cols, int h_col, int w_col) {
     if (curr_page == NULL) {
@@ -382,6 +372,7 @@ int build_pages(FILE* input_file, Page* curr_page, int cols, int h_col, int w_co
     while (!feof(input_file)) {
         long curr_pos = ftell(input_file);
 
+        // spazio per il prossimo chunk da leggere (più il null byte)
         char* line_chunk_content = calloc(w_col + 1, sizeof(char));
 
         // il numero di caratteri unicode che verranno incontrati all'interno
@@ -414,7 +405,7 @@ int build_pages(FILE* input_file, Page* curr_page, int cols, int h_col, int w_co
 
             if (trunc_err != TRUNCATED_HANDLING_SUCCESS) {
                 if (trunc_err != INVALID_INPUT) {
-                    free(line_chunk_content); // TODO: debuggare anche questo E CONTROLLARE CHE NON SERVA ALTROVE (PROBABILMENTE SERVE SOTTO MA NON LO SO)
+                    free(line_chunk_content); // TODO: CONTROLLARE CHE NON SERVA ALTROVE (PROBABILMENTE SERVE SOTTO MA NON LO SO)
                 }
                 
                 curr_page = first_page;
@@ -441,55 +432,85 @@ int build_pages(FILE* input_file, Page* curr_page, int cols, int h_col, int w_co
         } else {
             is_new_par = false;
 
+            // se la flag 'is_new_par' era stata settata true, allora la riga precedente
+            // era l'ultima riga di un paragrafo, e dunque la riga corrente deve essere
+            // completamente riempita con spazi, ignorando il contenuto del file
             pad_string(line_chunk_content, 0, w_col, ' ');
 
+            // con questa operazione ci si assicura che non venga aumentata la posizione all'interno
+            // del file, altrimenti si salterebbe una riga
             curr_pos -= w_col;
         }
 
-
+        // se la riga letta è completamente vuota, allora non deve essere
+        // neanche inserita all'interno della struttura dati; si noti che questo
+        // caso si verifica solamente al termine del file, ed è dunque sufficiente
+        // eseguire break sul ciclo corrente
         if (is_empty(line_chunk_content, w_col)) {
-            // printf("LA RIGA È VUOTA ZI\n");
-            // fseek(input_file, curr_pos + w_col, SEEK_SET);
-            // w_col -= unicode_offset;
-            // continue;
-            // printf("%d\n", end_value);
+            // non verrà inserito nella struttura dati, quindi va liberata la sua memoria
+            free(line_chunk_content);
+
             break;
-            // end_value = ENDED_TEXT;
         }
 
+        // se il numero di righe richiesto in input non è stato ancora raggiunto,
+        // allora è necessario continuare ad allocare righe all'interno della pagina corrente
         if (!h_col_reached) {
             if (append_line_and_advance(&curr_page, NULL) == NULL) {
+                free(line_chunk_content);
+
                 return ALLOC_ERROR;
             }
 
+            // poiché la pagina fornita in input potrebbe non contenere righe, è necessario
+            // settare il puntatore alla testa della lista puntata delle righe
+            // (la funzione si cura di non sovrascrivere il puntatore se già è settato)
             set_lines_head(curr_page);
         }
 
-        Line* curr_line = (Line*) curr_page->curr_line;
+        // viene inserito il chunk corrente, all'interno della lista puntata di chunk della riga corrente
+        if (append_line_chunk_and_advance((Line**) &curr_page->curr_line, line_chunk_content) == NULL) {
+            free(line_chunk_content);
 
-        append_line_chunk_and_advance(&curr_line, line_chunk_content);
+            return ALLOC_ERROR;
+        }
 
-        set_line_chunks_head(curr_line);
+        // analogamente, se la riga non aveva chunk, viene settato il puntatore alla testa
+        // della lista puntata di chunk
+        set_line_chunks_head((Line*) curr_page->curr_line);
 
+        // se il testo è terminato all'interno del chunk corrente, bisogna terminare il ciclo;
+        // si noti che non ci sono regioni di memoria allocate da liberare, poiché il contenuto
+        // del chunk, a questo punto del codice, è stato inserito all'interno della struttura dati
         if (end_value == ENDED_TEXT) {
             break;
         }
 
+        // se il numero di righe richiesto all'interno della pagina corrente è stato raggiunto,
+        // non bisogna continuare ad allocare righe, ma bisogna modificare il puntatore della riga corrente,
+        // semplicemente avanzandolo
         if (h_col_reached) {
             advance_curr_line(curr_page);
         }
 
         chunks_counter++;
 
+        // se il numero di chunk scritti è divisibile per il numero di righe per pagina richiesto, allora
+        // sono state scritte righe a sufficienza, e dunque la colonna deve terminare
         if (chunks_counter % h_col == 0) {
+            // viene settata la flag che servirà a far sapere che non bisogna più allocare righe
+            // per i prossimi chunk
             h_col_reached = true;
 
             col_counter++;
 
+            // viene resettato il puntatore della riga corrente, con il puntatore della testa,
+            // in modo da ripartire dalla prima riga
             reset_lines_head(curr_page); 
         }
 
         if (col_counter == cols) {
+            // se il numero di colonne massimo è stato raggiunto, allora bisogna allocare una nuova pagina
             Page* new_page = append_page(curr_page, NULL);
 
             if (new_page == NULL) {
@@ -498,16 +519,23 @@ int build_pages(FILE* input_file, Page* curr_page, int cols, int h_col, int w_co
 
             curr_page = new_page;
 
+            // bisogna resettare questa flag, poiché la nuova pagina non avrà alcuna riga inizialmente
             h_col_reached = false;
 
             col_counter = 0;
         }
 
+        // viene incrementata la posizione nel file, sommando alla posizione corrente la larghezza
+        // del chunk *scritto* (si noti che 'w_col' potrebbe subire modifiche all'interno del programma
+        // a seconda del numero di byte letti)
         fseek(input_file, curr_pos + w_col, SEEK_SET);
 
+        // viene resettato il valore iniziale di w_col, rimuovendo il numero di byte unicode speciali letti
         w_col -= unicode_offset;
     }
 
+    // viene resettato il puntatore alla prima pagina, poiché al termine della lettura
+    // 'curr_page' punterà all'ultima pagina
     curr_page = first_page;
 
     return PAGE_SUCCESS;

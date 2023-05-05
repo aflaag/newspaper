@@ -56,6 +56,25 @@ bool check_truncated_end(char* line_chunk_content, int w_col, char next_char) {
 }
 
 /*
+    La funzione restituisce true, se la stringa fornita (che verrà controllata su 'len' caratteri),
+    contiene esclusivamente '\0'; la funzione restituisce true anche se il puntatore alla stringa è NULL;
+    la funzione non effettua controlli sulla lunghezza fornita.
+*/
+bool is_empty(char* string, int len) {
+    if (string == NULL) {
+        return true;
+    }
+
+    for (int i = 0; i < len; i++) {
+        if (string[i] != '\0') {
+            return false;
+        }
+    }
+
+    return true;
+}
+
+/*
     La funzione prende in input una stringa, e la sua nuova dimensione, e se possibile,
     aggiorna il puntatore char** di input con l'indirizzo alla nuova stringa di dimensione fornita;
     si noti che la funzione tronca, e ritorna codici di errore nel caso in cui non è

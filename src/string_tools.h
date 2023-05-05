@@ -18,6 +18,7 @@ bool is_char(char character);
 bool is_utf8(unsigned char character);
 bool check_truncated_end(char* line_chunk_content, int w_col, char next_char);
 bool no_spaces(char* string, int len);
+bool is_empty(char* string, int len);
 
 void string_replace(char* string, char target, char replacement);
 void pad_string(char* string, unsigned int start, unsigned int end, char character);
