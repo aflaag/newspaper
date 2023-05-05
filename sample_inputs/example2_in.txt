@@ -1,0 +1,3 @@
+Come si può vedere all'interno di questo esempio, il testo viene perfettamente incolonnato e giustificato secondo i parametri specificati dall'utente: infatti per produrre questo output è stato scelto di utilizzare 3 colonne per pagina, 5 righe per colonna, 15 caratteri per riga di colonna, e 5 caratteri tra una colonna e l'altra all'interno di una pagina.
+
+Si noti inoltre come il progrmma è in grado di gestire caratteri UTF-8, e mantiene la separazione in paragrafi del testo originale, inserendo tra questi una riga vuota di separazione. :)

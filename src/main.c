@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <string.h>
 
 #include "args.h"
 #include "page.h"
@@ -43,7 +44,7 @@ int main(int argc, char* argv[]) {
             fprintf(stderr, "0 as value is not allowed.\n\nSee '--help' for more information.\n");
             break;
         case PRINT_HELP:
-            fprintf(stderr, "TODO: FAI L'HELP\n");
+            fprintf(stderr, "%s", HELP_MESSAGE);
             break;
         default:
             break;

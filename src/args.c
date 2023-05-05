@@ -25,7 +25,7 @@ bool is_file_empty(FILE* file) {
 */
 int parse_args(int argc, char* argv[], char** input_path, char** output_path, int* cols, int* h_col, int* w_col, int* spacing) {
     if (argc < 7) {
-        if (argv[1] == "--help") { // gli altri argomenti verranno ignorati
+        if (!strcmp(argv[1], "--help")) { // gli altri argomenti verranno ignorati
             return PRINT_HELP;
         }
 
