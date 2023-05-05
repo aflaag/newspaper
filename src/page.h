@@ -6,15 +6,15 @@
 #include "line.h"
 #include "string_tools.h"
 
-#define PAGE_SUCCESS 4
-#define TRUNCATED_HANDLING_SUCCESS 3
-#define ENDED_PARAGRAPH 2
-#define ENDED_TEXT 1
-#define NOT_ENDED_TEXT 0
-#define INSUFFICIENT_WIDTH -1
-#define ALLOC_ERROR -2
-#define INVALID_INPUT -3
-#define FSEEK_ERROR -4
+#define PAGE_SUCCESS 4 // restituita se non si sono verificati errori nella costruzione della struttura delle pagine
+#define TRUNCATED_HANDLING_SUCCESS 3 // restituita se non si sono verificati errori nella gestione di una riga troncata
+#define ENDED_PARAGRAPH 2 // restituita se la riga corrente era l'ultima di un paragrafo
+#define ENDED_TEXT 1 // restituita se il chunk corrente era l'ultimo del file
+#define NOT_ENDED_TEXT 0 // restituita se il file non è ancora terminato
+#define INSUFFICIENT_WIDTH -1 // restituita se un chunk contiene una parola più larga della larghezza di colonna fornita
+#define ALLOC_ERROR -2 // restituita se si sono verificati errori di allocazione della memoria
+#define INVALID_INPUT -3 // restituita se si sono verificati degli errori nel fornire input ad alcune funzioni
+#define FSEEK_ERROR -4 // restituita se la funzione fseek non è stata in grado di leggere il carattere alla posizione specificata
 
 #ifndef PAGE_H
 #define PAGE_H

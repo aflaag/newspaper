@@ -3,13 +3,13 @@
 #include <string.h>
 #include <stdbool.h>
 
-#define JUSTIFICATION_SUCCESS 3
-#define TRUNCATION_NOT_PERFORMED 2
-#define TRUNCATION_SUCCESS 1
-#define ATOI_SUCCESS 0
-#define ATOI_INVALID_CHAR -1
-#define TRUNCATION_ERROR -2
-#define INVALID_INPUT -3
+#define JUSTIFICATION_SUCCESS 3 // restituita se non si sono verificati errori durante la giustificazione del chunk
+#define TRUNCATION_NOT_PERFORMED 2 // restituita se non è stato necessario troncare la stringa fornita in input
+#define TRUNCATION_SUCCESS 1 // restituita se la stringa fornita è stata troncata con successo
+#define ATOI_SUCCESS 0 // restituita se non si sono verificati errori durante il parsing da stringa a intero
+#define ATOI_INVALID_CHAR -1 // restituita se si sono verificati errori durante il parsing da stringa a intero
+#define TRUNCATION_ERROR -2 // restituita se si sono verificati errori durante il troncamento della stringa fornita in input
+#define INVALID_INPUT -3 // restituita se si sono verificati degli errori nel fornire inpu ad alcune funzioni
 
 #ifndef STRING_TOOLS_H
 #define STRING_TOOLS_H
