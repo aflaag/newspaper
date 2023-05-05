@@ -342,6 +342,17 @@ int handle_truncated_string(FILE* input_file, char** line_chunk_content, int* w_
     return TRUNCATED_HANDLING_SUCCESS;
 }
 
+bool is_empty(char* string, int len) {
+    for (int i = 0; i < len; i++) {
+        if (string[i] != '\0') {
+        // if (is_char(string[i]) && string[i] != ' ') {
+            return false;
+        }
+    }
+
+    return true;
+}
+
 // TODO: descrivi la struttura dati
 int build_pages(FILE* input_file, Page* curr_page, int cols, int h_col, int w_col) {
     if (curr_page == NULL) {
@@ -429,6 +440,17 @@ int build_pages(FILE* input_file, Page* curr_page, int cols, int h_col, int w_co
             pad_string(line_chunk_content, 0, w_col, ' ');
 
             curr_pos -= w_col;
+        }
+
+
+        if (is_empty(line_chunk_content, w_col)) {
+            // printf("LA RIGA È VUOTA ZI\n");
+            // fseek(input_file, curr_pos + w_col, SEEK_SET);
+            // w_col -= unicode_offset;
+            // continue;
+            // printf("%d\n", end_value);
+            break;
+            // end_value = ENDED_TEXT;
         }
 
         if (!h_col_reached) {

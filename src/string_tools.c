@@ -187,7 +187,8 @@ int min(int x, int y) {
 }
 
 int evaluate_curr_spaces(int spaces_end, int spaces_inside, int spaces_done, int ratio) {
-    return ratio + 1 == spaces_end && spaces_done + 1 == spaces_inside ? ratio + 1 : min(spaces_end, ratio);
+    // return ratio + 1 == spaces_end && spaces_done + 1 == spaces_inside ? ratio + 1 : min(spaces_end, ratio);
+    return ratio;
     // return min(ratio, spaces_end);
 
     // return ratio <= spaces_end ? ratio : 0;
