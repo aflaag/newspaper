@@ -2,3 +2,4 @@ newspaper
 /.vscode
 src/main
 output.txt
+/bin
