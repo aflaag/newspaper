@@ -23,8 +23,8 @@ int main(int argc, char* argv[]) {
     char* input_path;
     char* output_path;
     
-    bool debug = true;
-    // bool debug = false;
+    // bool debug = true;
+    bool debug = false;
 
     int args_err = 0;
 
