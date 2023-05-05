@@ -50,7 +50,10 @@ void print_line_chunk(FILE* output_file, LineChunk* line_chunk) {
     }
 }
 
-// TODO: TESTALA PRIMA
+/*
+    La funzione prende in input un puntatore ad un chunk di riga, e libera ricorsivamente l'intera
+    lista puntata di chunk, con le rispettive stringhe.
+*/
 void free_line_chunks(LineChunk* line_chunk) {
     if (line_chunk == NULL) {
         return;

@@ -1,6 +1,10 @@
 #include "args.h"
 
-// TODO: mettere nella doc che se il file è NULL restituisce true
+/*
+    La funzione prende in input un file, e restituisce true se il puntatore al file fornito è vuoto;
+    si noti che la funzione restituisce true anche se il puntatore è NULL, e restituisce false anche se
+    la 'fseek' ha restituito errore.
+*/
 bool is_file_empty(FILE* file) {
     if (file != NULL) {
         if (fseek(file, 0, SEEK_END)) {
@@ -15,9 +19,13 @@ bool is_file_empty(FILE* file) {
     return true;
 }
 
+/*
+    La funzione prende in input i puntatori agli argomenti, ed effettua il parsing degli argomenti
+    forniti in input al programma; consultare la documentazione per maggiori informazioni.
+*/
 int parse_args(int argc, char* argv[], char** input_path, char** output_path, int* cols, int* h_col, int* w_col, int* spacing) {
     if (argc < 7) {
-        if (argv[1] == "--help") {
+        if (argv[1] == "--help") { // gli altri argomenti verranno ignorati
             return PRINT_HELP;
         }
 

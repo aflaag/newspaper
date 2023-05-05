@@ -325,7 +325,12 @@ int handle_truncated_string(FILE* input_file, char** line_chunk_content, int* w_
     return TRUNCATED_HANDLING_SUCCESS;
 }
 
-// TODO: descrivi la struttura dati
+/*
+    La funzione prende in input un puntatore ad un file, un puntatore ad una pagina, il numero di colonne
+    per pagina, il numero di caratteri per riga di colonna, e il numero di righe per colonna; la funzione
+    costruisce una struttura dati di liste puntate annidate, restituendo il puntatore alla prima pagina
+    della lista puntata.
+*/
 int build_pages(FILE* input_file, Page* curr_page, int cols, int h_col, int w_col) {
     if (curr_page == NULL) {
         return ALLOC_ERROR;
@@ -521,7 +526,10 @@ int build_pages(FILE* input_file, Page* curr_page, int cols, int h_col, int w_co
     return PAGE_SUCCESS;
 }
 
-// TODO: TESTALA PRIMA
+/*
+    La funzione libera la memoria della pagina fornita in input, liberandone anche la lista puntata
+    di righe che contiene.
+*/
 void free_pages(Page* page) {
     if (page == NULL) {
         return;

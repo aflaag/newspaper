@@ -87,16 +87,14 @@ int main(int argc, char* argv[]) {
 
     switch (exit_code)  {
         case ALLOC_ERROR:
-            fprintf(stderr, "REALLOC: TODO ERROR HANDLING\n");
+            fprintf(stderr, "An error occurred while trying to allocate memory in the program.\n");
             break;
         case INSUFFICIENT_WIDTH:
-            fprintf(stderr, "WIDTH: TODO ERROR HANDLING\n");
+            fprintf(stderr, "The file given as input contains words that are larger than the width provided.\n\nSee '--help' for more information\n");
             break;
         case INVALID_INPUT:
-            fprintf(stderr, "INVALID INPUT: TODO ERROR HANDLING\n");
-            break;
         case FSEEK_ERROR:
-            fprintf(stderr, "FSEEK : todo \n");
+            fprintf(stderr, "An error occurred while running the program.\n");
             break;
         case PAGE_SUCCESS:
             print_pages(output_file, pages, spacing, "\n%%%\n\n", ' ');

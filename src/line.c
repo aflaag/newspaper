@@ -102,7 +102,10 @@ void print_line(FILE* output_file, Line* line, int spacing, char spacing_char) {
     fprintf(output_file, "\n");
 }
 
-// TODO: TESTALA PRIMA
+/*
+    La funzione libera la memoria della riga fornita in input, liberandone anche la lista puntata
+    di chunk che contiene.
+*/
 void free_lines(Line* line) {
     if (line == NULL) {
         return;
