@@ -28,8 +28,10 @@ long replace_truncated_chars(char* line_chunk_content, int* w_col, char replacem
 
 int count_words(char* string, int len);
 
+bool valid_queue_inputs(int head, int tails, int len);
 void enqueue(char queue[], int len, int* head, int* tail, char element);
 char dequeue(char queue[], int len, int* head, int* tail);
+void put_spaces_and_enqueue(int ratio, int* remainder, char* string, char* queue, int len, int* head, int* tail, int* i);
 void slide_characters(char* string, int len, int spaces_end, int spaces_inside);
 void justify_string(char* string, int len);
 

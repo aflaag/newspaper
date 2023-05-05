@@ -411,7 +411,7 @@ int build_pages(FILE* input_file, Page* curr_page, int cols, int h_col, int w_co
                 is_new_par = true;
             }
 
-            w_col = w_col_backup; // TODO: PERCHE SERVIVA FA STA COSA?!?!?!
+            w_col = w_col_backup; // TODO: NON SO PERCHE SERVE
         } else {
             is_new_par = false;
 

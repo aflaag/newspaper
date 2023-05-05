@@ -190,16 +190,32 @@ int count_words(char* string, int len) {
     return words;
 }
 
+/*
+    La funzione restituisce true se i parametri in input sono validi indici della coda.
+*/
+bool valid_queue_inputs(int head, int tail, int len) {
+    return head >= 0 && head < len - 1 && tail >= 0 && tail < len - 1 && head <= tail;
+}
+
+/*
+    La funzione prende in input una coda rappresentata da un array, e ne accoda il carattere fornito,
+    solamente se gli input sono validi; la funzione non effettua controlli sulla lunghezza fornita.
+*/
 void enqueue(char queue[], int len, int* head, int* tail, char element) {
-    if (*tail >= 0 && *tail < len - 1) {
+    if (valid_queue_inputs(*head, *tail, len)) {
         queue[*tail] = element;
 
         *tail += 1;
     }
 }
 
+/*
+    La funzione prende in input una coda rappresentata da un array, e ne rimuove il primo carattere in coda,
+    solamente se gli input sono validi, restituendolo; al suo posto, viene inserito '\0'; se gli input non sono
+    validi, la funzione restituisce '\0'; la funzione non effettua controlli sulla lunghezza fornita.
+*/
 char dequeue(char queue[], int len, int* head, int* tail) {
-    if (*head < *tail) { // TODO: avrebbe comunque senso mettere i controlli anche qui though
+    if (valid_queue_inputs(*head, *tail, len)) {
         char element = queue[*head];
 
         queue[*head] = '\0';
@@ -212,6 +228,44 @@ char dequeue(char queue[], int len, int* head, int* tail) {
     }
 }
 
+/*
+    La funzione inserisce un oppurtuno numero di spazi nel buco corrente, e per ogni carattere rimpiazzato,
+    ne viene salvata una copia all'interno della coda fornita.
+*/
+void put_spaces_and_enqueue(int ratio, int* remainder, char* string, char* queue, int len, int* head, int* tail, int* i) {
+    // il numero di spazi che deve essere inserito all'interno del buco corrente
+    // è sicuramente almeno pari al rapporto
+    int curr_spaces = ratio;
+
+    // se il resto non è ancora 0, allora oltre al rapporto deve essere aggiunto 1 spazio;
+    // si noti che il resto di una divisione m / n, è al massimo n - 1, e dunque al massimo
+    // veranno aggiunti n - 1 spazi su n buchi
+    if (*remainder != 0) {
+        curr_spaces++;
+
+        *remainder -= 1;
+    }
+
+    while (curr_spaces > 0) {
+        // ogni carattere che deve essere sostituito con uno spazio viene prima
+        // inserito all'interno della coda, per non perdere informazione
+        enqueue(queue, len, head, tail, string[*i]);
+
+        string[*i] = ' ';
+
+        curr_spaces--;
+
+        *i += 1;
+    }
+
+    *i -= 1; // TODO: NON SO PERCHE SERVE
+}
+
+/*
+    La funzione prende in input la riga da giustificare, la sua lunghezza, il numero di spazi alla fine
+    della riga, e il numero di spazi tra parole, e giustifica la riga fornita; la funzione non
+    effettua controlli sulla correttezza degli input forniti.
+*/
 void slide_characters(char* string, int len, int spaces_end, int spaces_inside) {
     // il numero di spazi per buco tra parole, è pari al numero di spazi alla fine della riga,
     // diviso per il numero di buchi; naturalmente tale rapporto può non avere resto 0, e dunque
@@ -220,18 +274,32 @@ void slide_characters(char* string, int len, int spaces_end, int spaces_inside) 
     int ratio = spaces_end / spaces_inside;
     int remainder = spaces_end % spaces_inside;
 
+    // head è incluso, mentre tail è eslcuso; dunque, se head = tail, allora la coda è vuota
     int head = 0;
     int tail = 0;
 
     // viene creata una coda lunga pari alla lunghezza fornita in input,
     // e viene riempita di '\0' completamente; tale carattere sarà usato dall'algoritmo
     // per sapere se un certo slot della coda è disponibile o meno
-    char queue[len]; // TODO: dire che non faccio controlli sull'input
+    char queue[len];
     pad_string(queue, 0, len, '\0');
 
+    // il ciclo parte da 1, poiché verrà controllato ogni volta l'(i - 1)-esimo carattere
+    // e il primo carattere non è sicuramente rilevante per come sono stati letti i chunk
     for (int i = 1; i < len; i++) {
         if (tail != 0) {
+            // se la coda non è vuota, e il carattere corrente è parte di una parola, mentre
+            // l'ultimo carattere inserito nella coda non lo era, oppure il carattere in testa
+            // alla coda non è parte di una parola, bisogna svuotare parzialmente la coda; questo, in quanto
+            // ci si trova nel primo caso se si incontra una nuova parola, (che sia almeno la terza
+            // della riga, poiché la prima viene saltate e la seconda viene gestita nel branch else
+            // del controllo della coda), ed è dunque necessario inserire ulteriori spazi
+            // all'interno della riga, ma prima di farlo bisogna svuotare la coda, ma solamente i caratteri
+            // che compongono la parte della prima parola della coda
             if ((is_char(string[i]) && !is_char(queue[tail - 1])) || !is_char(queue[head])) {
+                // fintanto che non si termina la prima parte di parola correntemente in coda
+                // quest'ultima viene svuotata all'interno della stringa, incodando i caratteri
+                // che verranno rimpiazzati
                 while (is_char(queue[head])) {
                     enqueue(queue, len, &head, &tail, string[i]);
 
@@ -240,56 +308,34 @@ void slide_characters(char* string, int len, int spaces_end, int spaces_inside) 
                     i++;
                 }
 
+                // viene incodato lo spazio stesso (si noti che è sicuramente 1 solo, per via
+                // di come è stato letto il chunk precedentemente)
                 enqueue(queue, len, &head, &tail, string[i]);
+
                 string[i] = dequeue(queue, len, &head, &tail);
+
                 i++;
-                
-                int curr_spaces = ratio;
 
-                if (remainder != 0) {
-                    curr_spaces++;
-                    remainder--;
-                }
-
-                spaces_end -= curr_spaces;
-
-                while (curr_spaces > 0) {
-                    enqueue(queue, len, &head, &tail, string[i]);
-
-                    string[i] = ' ';
-
-                    curr_spaces--;
-
-                    i++;
-                }
-
-                i--;
+                // infine, vengono inseriti gli spazi all'interno del buco tra parole, inserendo
+                // nella coda i caratteri incontrati
+                put_spaces_and_enqueue(ratio, &remainder, string, queue, len, &head, &tail, &i);
             } else {
+                // se invece non ci si trova nella casistica precdente, bisogna far scorrere
+                // i caratteri all'interno della coda, qundue incodando il carattere corrente,
+                // e rimpiazzandolo con il primo nella coda di volta in volta
                 enqueue(queue, len, &head, &tail, string[i]);
 
                 string[i] = dequeue(queue, len, &head, &tail);
             }
         } else if (is_char(string[i]) && !is_char(string[i - 1])) {
-            int curr_spaces = ratio;
-
-            if (remainder != 0) {
-                curr_spaces++;
-                remainder--;
-            }
-
-            spaces_end -= curr_spaces;
-
-            while (curr_spaces > 0) {
-                enqueue(queue, len, &head, &tail, string[i]);
-
-                string[i] = ' ';
-
-                curr_spaces--;
-
-                i++;
-            }
-
-            i--;
+            // se il carattere corrente è un carattere di una parola, mentre il carattere
+            // precedente non lo è, poiché il controllo precedente (tail != 0) è stato valutato
+            // a false (e dunque la coda è ancora vuota), allora ci si trova sul primo carattere
+            // della seconda parola della riga; si noti che le parole sono almeno 2, altrimenti
+            // questa funzione non sarebbe stata chiamata; se ci si trova in questo punto della riga,
+            // bisogna inserire un oppurtuno numero di spazi al posto dei caratteri correnti,
+            // e quest'ultimi vanno copiati all'interno della coda (nell'ordine in cui appaiono)
+            put_spaces_and_enqueue(ratio, &remainder, string, queue, len, &head, &tail, &i);
         }
     }
 }
