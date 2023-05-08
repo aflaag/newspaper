@@ -1,0 +1,1 @@
+come il progrmma è in grado di gestire caratteri UTF-8, e mantiene la separazione in paragrafi del testo originale, inserendo tra questi una riga vuota di separazione. :)

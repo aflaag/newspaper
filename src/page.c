@@ -134,7 +134,7 @@ void print_pages(FILE* output_file, Page* page, int spacing, char* pages_separat
     incontrati all'interno del chunk (che potrebbe variare in base al chunk letto). La funzione
     non effettua controlli sulla correttezza di 'w_col', 'base_idx' e 'unicode_offset'.
 */
-int read_chunk(FILE* input_file, char** line_chunk_content, int* w_col, long* base_idx, int* unicode_offset) {
+int read_chunk(FILE* input_file, char** line_chunk_content, int* w_col, long* base_idx, int* unicode_offset, bool is_first_line_first_col) {
     if (input_file == NULL || line_chunk_content == NULL || *line_chunk_content == NULL) {
         return INVALID_INPUT;
     }
@@ -170,11 +170,23 @@ int read_chunk(FILE* input_file, char** line_chunk_content, int* w_col, long* ba
 
         char next_char = fgetc(input_file);
 
-        // se il carattere corrente e il carattere successivo
-        // all'interno del file sono entrambi '\n', allora la riga era
-        // l'ultima di un paragrafo, e dunque è necessario smettere di leggere
-        // dal file di input, e riempire il resto del buffer con spazi
-        if (curr_char == '\n' && next_char == '\n') {
+        if (curr_char == '\n' && (!is_first_line_first_col || is_first_line_first_col && is_text_started)) {
+            fseek(input_file, next_pos, SEEK_SET);
+            // TODO: ATTENTO CHE DOVREBBE ESSERE IL NEXT MESA
+            int k = 0; 
+
+            while (curr_char == '\n' || curr_char == '\t' || curr_char == '\r' || curr_char == ' ') {
+                curr_char = fgetc(input_file);
+
+                if (curr_char == EOF || curr_char == '\0') {
+                    (*line_chunk_content)[j - invalid_offset] = '\0';
+
+                    return ENDED_TEXT;
+                }
+
+                k++;
+            }
+
             pad_string(*line_chunk_content, j - invalid_offset, *w_col + *unicode_offset, ' ');
 
             // base_idx è il puntatore alla posizione con cui si è iniziato a leggere
@@ -183,7 +195,11 @@ int read_chunk(FILE* input_file, char** line_chunk_content, int* w_col, long* ba
             // posto vi sono stati inseriti degli spazi; si noti che la formula vede un + 2
             // al suo interno, poichè vanno saltati i due '\n' letti come indicatore
             // di fine paragrafo, altrimenti si andrebbe in loop infinito
-            *base_idx += j - (*w_col + invalid_offset + *unicode_offset) + 2;
+            *base_idx += j - (*w_col + invalid_offset + *unicode_offset) + k;
+
+            if (exit_code == ENDED_TEXT) {
+                return exit_code;
+            }
 
             // si noti che con questo algoritmo si presenta un caso particolare nel momento
             // in cui la riga dell'ultimo paragrafo termina proprio sull'ultimo carattere disponibile
@@ -193,6 +209,7 @@ int read_chunk(FILE* input_file, char** line_chunk_content, int* w_col, long* ba
             // ogni suo carattere con ' ', è sufficiente controllare che l'attuale primo carattere
             // del chunk non sia uno spazio, per gestire questo caso particolare
             exit_code = (*line_chunk_content)[0] != ' ' ? ENDED_PARAGRAPH : NOT_ENDED_TEXT;
+            // exit_code = ENDED_PARAGRAPH;
             
             break;
         }
@@ -227,6 +244,7 @@ int read_chunk(FILE* input_file, char** line_chunk_content, int* w_col, long* ba
             }
         } else {
             exit_code = ENDED_TEXT;
+            break;
         }
 
         if (fseek(input_file, next_pos, SEEK_SET)) {
@@ -337,6 +355,7 @@ int build_pages(FILE* input_file, Page* curr_page, int cols, int h_col, int w_co
     }
 
     Page* first_page = curr_page; // backup per non perdere la testa della lista puntata
+    Page* prev_page = NULL;
 
     int chunks_counter = 0; // il numero di chunk salvati
     int col_counter = 0; // il numero di colonne salvate
@@ -365,7 +384,7 @@ int build_pages(FILE* input_file, Page* curr_page, int cols, int h_col, int w_co
         int end_value = NOT_ENDED_TEXT;
 
         if (!is_new_par) {
-            end_value = read_chunk(input_file, &line_chunk_content, &w_col, &curr_pos, &unicode_offset);
+            end_value = read_chunk(input_file, &line_chunk_content, &w_col, &curr_pos, &unicode_offset, col_counter == 0 && chunks_counter == 0);
 
             if (end_value == ALLOC_ERROR || end_value == FSEEK_ERROR) {
                 free(line_chunk_content);
@@ -384,7 +403,11 @@ int build_pages(FILE* input_file, Page* curr_page, int cols, int h_col, int w_co
 
             int w_col_backup = w_col;
 
-            int trunc_err = handle_truncated_string(input_file, &line_chunk_content, &w_col, &curr_pos);
+            int trunc_err = TRUNCATED_HANDLING_SUCCESS;
+            
+            if (end_value != ENDED_TEXT) {
+                trunc_err = handle_truncated_string(input_file, &line_chunk_content, &w_col, &curr_pos);
+            }
 
             if (trunc_err != TRUNCATED_HANDLING_SUCCESS) {
                 if (trunc_err != INVALID_INPUT) {
@@ -433,7 +456,17 @@ int build_pages(FILE* input_file, Page* curr_page, int cols, int h_col, int w_co
             // non verrà inserito nella struttura dati, quindi va liberata la sua memoria
             free(line_chunk_content);
 
-            break;
+            if (col_counter == 0 && chunks_counter % h_col == 0 && prev_page != NULL) {
+                free(curr_page);
+
+                prev_page->next_page = NULL;
+
+                curr_page = prev_page;
+
+                return PAGE_SUCCESS;
+            } else {
+                break;
+            }
         }
 
         // se il numero di righe richiesto in input non è stato ancora raggiunto,
@@ -500,6 +533,7 @@ int build_pages(FILE* input_file, Page* curr_page, int cols, int h_col, int w_co
                 return ALLOC_ERROR;
             }
 
+            prev_page = curr_page;
             curr_page = new_page;
 
             // bisogna resettare questa flag, poiché la nuova pagina non avrà alcuna riga inizialmente

@@ -39,7 +39,7 @@ void advance_curr_line(Page* page);
 void set_lines_head(Page* page);
 void reset_lines_head(Page* page);
 
-int read_chunk(FILE* input_file, char** line_chunk_content, int* w_col, long* base_idx, int* unicode_offset);
+int read_chunk(FILE* input_file, char** line_chunk_content, int* w_col, long* base_idx, int* unicode_offset, bool is_first_line_first_col);
 int handle_truncated_string(FILE* input_file, char** line_chunk_content, int* w_col, long* base_idx);
 int build_pages(FILE* input_file, Page* curr_page, int cols, int h_col, int w_col);
 

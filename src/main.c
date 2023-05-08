@@ -31,6 +31,8 @@ int main(int argc, char* argv[]) {
 
     if (!debug) {
         args_err = parse_args(argc, argv, &input_path, &output_path, &cols, &h_col, &w_col, &spacing);
+    } else {
+        printf("DEBUG ATTIVO ");
     }
 
     switch (args_err) {
@@ -57,7 +59,8 @@ int main(int argc, char* argv[]) {
     FILE* input_file = fopen(input_path, "r");
 
     if (debug) {
-        cols = 3; h_col = 40; w_col = 16; spacing = 10; input_file = fopen("/home/aless/Desktop/codes/misc/c/newspaper/Makefile", "r");
+        // cols = 3; h_col = 40; w_col = 21; spacing = 10; input_file = fopen("/home/aless/Desktop/codes/misc/c/newspaper/sample_inputs/lorem_long_in.txt", "r");
+        cols = 3; h_col = 5; w_col = 15; spacing = 5; input_file = fopen("/home/aless/Desktop/codes/misc/c/newspaper/sample_inputs/example2_in.txt", "r");
     }
 
     if (input_file == NULL) {
@@ -112,6 +115,17 @@ int main(int argc, char* argv[]) {
         default:
             break;
     }
+
+    // Page* a = pages;
+
+    // int c= 0;
+
+    // while (a != NULL) {
+    //     a = (Page*) a->next_page;
+    //     c++;
+    // }
+
+    // printf("%d\n", c);
 
     free_pages(pages);
 

@@ -70,8 +70,6 @@ TODO: spiega la struttura del programma
 
 ## TODO list
 
-- fixa il bug per cui se il testo finisce paro si mette il separatore di pagina alla fine, no clue why (*questo però ha il test*)
-  - inoltre, a quanto pare alla fine se finisce con un UTF-8 pensa di poter mettere un altro byte ancora, (*nota che questo non è un test*)
 - l'help message tecnicamente non dovrebbe stare dove sta, magari prova a chiedere al prof o boh
 - capire come funzionano gli includes negli headers (?!)
 - fare questo readme

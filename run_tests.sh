@@ -33,5 +33,6 @@ run_test sample_inputs/nothing_in.txt expected_outputs/nothing_out.txt 3 3 4 10
 run_test sample_inputs/makefile_in.txt expected_outputs/makefile_out.txt 3 8 16 10
 run_test sample_inputs/example_in.txt expected_outputs/example_out.txt 3 5 15 5
 run_test sample_inputs/example2_in.txt expected_outputs/example2_out.txt 3 5 15 5
+run_test sample_inputs/example3_in.txt expected_outputs/example3_out.txt 3 5 15 5
 
 printf "\n[$PASSED_TESTS/$TOTAL_TESTS] tests passed.\n"
