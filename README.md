@@ -28,7 +28,7 @@ per colonna, 15     una  colonna  e     Si noti inoltre
 %%%
 
 come         il     UTF-8,        e     originale,     
-progrmma  è  in     mantiene     la     inserendo   tra
+programma  è in     mantiene     la     inserendo   tra
 grado        di     separazione  in     questi una riga
 gestire             paragrafi   del      vuota        di
 caratteri           testo               separazione. 😃
