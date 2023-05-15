@@ -884,7 +884,7 @@ int build_pages_par(int* pipefd_rs, int* pipefd_sw, int cols, int h_col, Page* c
                         new_joined_line = calloc(len + strlen(lc->content) + spacing, sizeof(char));
                         len += strlen(lc->content) + spacing;
                     } else {
-                        char* new_joined_line = calloc(len + strlen(lc->content), sizeof(char));
+                        new_joined_line = calloc(len + strlen(lc->content), sizeof(char));
                         len += strlen(lc->content);
                     }
 
