@@ -70,6 +70,8 @@ TODO: spiega la struttura del programma
 
 ## TODO list
 
+- fixa il bug delle ultime righe
+- vedi se è possibile spostare l'invio della riga nel momento in cui la creazione della riga termina (probabilmente si ma non capisco bene come perche non ricordo cosa col_counter faccia)
 - l'help message tecnicamente non dovrebbe stare dove sta, magari prova a chiedere al prof o boh
 - capire come funzionano gli includes negli headers (?!)
 - fare questo readme

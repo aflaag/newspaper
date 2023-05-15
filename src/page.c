@@ -747,7 +747,7 @@ int read_input_file_par(int* pipefd_rs, FILE* input_file, int cols, int h_col, i
     return PAGE_SUCCESS;
 }
 
-int build_pages_par(int* pipefd_rs, int* pipefd_sw, int cols, int h_col, Page* curr_page) {
+int build_pages_par(int* pipefd_rs, int* pipefd_sw, int cols, int h_col, Page* curr_page, int spacing) {
     int len;
 
     // Page* curr_page = new_page(NULL);
@@ -865,6 +865,61 @@ int build_pages_par(int* pipefd_rs, int* pipefd_sw, int cols, int h_col, Page* c
 
             // write(pipefd_sw[1], &page_size, sizeof(int));
             // write(pipefd_sw[1], curr_page, page_size);
+            Line* l = curr_page->lines_head;
+
+            while (l != NULL) {
+                LineChunk* lc = l->line_chunks_head;
+
+                char* joined_line = calloc(1, sizeof(char));
+                int len = 0;
+
+                while (lc != NULL) {
+                    char* new_joined_line;
+
+                    int len_backup = len;
+
+                    if (lc->next_line_chunk != NULL) {
+                        new_joined_line = calloc(len + strlen(lc->content) + spacing, sizeof(char));
+                        len += strlen(lc->content) + spacing;
+                    } else {
+                        char* new_joined_line = calloc(len + strlen(lc->content), sizeof(char));
+                        len += strlen(lc->content);
+                    }
+
+                    if (new_joined_line == NULL) {
+                        return ALLOC_ERROR;
+                    }
+
+                    memcpy(new_joined_line, joined_line, len_backup);
+
+                    // free(joined_line);
+
+                    strcat(new_joined_line, lc->content);
+
+                    if (lc->next_line_chunk != NULL) {
+                        for (int i = 0; i < spacing; i++) {
+                            // strcat(new_joined_line, ' '); // TODO: SPACING CHAR
+                            new_joined_line[len - spacing + i] = ' ';
+                        }
+                    }
+
+                    joined_line = new_joined_line;
+
+                    // printf("%s\n", joined_line);
+
+                    lc = lc->next_line_chunk;
+                }
+
+                // TODO: ATTENZIONE CHE NON MANDO \n, CE LO DEVE METTERE IL TERZO PROCESSO (IDEM PER SEPARATORE TRA PAGINE)
+
+                len++;
+                write(pipefd_sw[1], &len, sizeof(int));
+                write(pipefd_sw[1], joined_line, len);
+
+                // free(joined_line);
+
+                l = l->next_line;
+            }
 
             Page* new_page = append_page(curr_page, NULL);
 
@@ -883,22 +938,83 @@ int build_pages_par(int* pipefd_rs, int* pipefd_sw, int cols, int h_col, Page* c
 
     }
 
+            Line* l = curr_page->lines_head;
+
+            while (l != NULL) {
+                LineChunk* lc = l->line_chunks_head;
+
+                char* joined_line = calloc(1, sizeof(char));
+                int len = 0;
+
+                while (lc != NULL) {
+                    char* new_joined_line;
+
+                    int len_backup = len;
+
+                    if (lc->next_line_chunk != NULL) {
+                        new_joined_line = calloc(len + strlen(lc->content) + spacing, sizeof(char));
+                        len += strlen(lc->content) + spacing;
+                    } else {
+                        char* new_joined_line = calloc(len + strlen(lc->content), sizeof(char));
+                        len += strlen(lc->content);
+                    }
+
+                    if (new_joined_line == NULL) {
+                        return ALLOC_ERROR;
+                    }
+
+                    memcpy(new_joined_line, joined_line, len_backup);
+
+                    // free(joined_line);
+
+                    strcat(new_joined_line, lc->content);
+
+                    if (lc->next_line_chunk != NULL) {
+                        for (int i = 0; i < spacing; i++) {
+                            // strcat(new_joined_line, ' '); // TODO: SPACING CHAR
+                            new_joined_line[len - spacing + i] = ' ';
+                        }
+                    }
+
+                    joined_line = new_joined_line;
+
+                    // printf("%s\n", joined_line);
+
+                    lc = lc->next_line_chunk;
+                }
+
+                // TODO: ATTENZIONE CHE NON MANDO \n, CE LO DEVE METTERE IL TERZO PROCESSO (IDEM PER SEPARATORE TRA PAGINE)
+
+                len++;
+                write(pipefd_sw[1], &len, sizeof(int));
+                write(pipefd_sw[1], joined_line, len);
+
+                // free(joined_line);
+
+                l = l->next_line;
+            }
+
     return PAGE_SUCCESS;
 }
 
-void write_output_file_par(int* pipefd_sw, FILE* output_file, int spacing, char* pages_separator, char spacing_char) {
-    int page_size;
+void write_output_file_par(int* pipefd_sw, FILE* output_file, int h_col, int spacing, char* pages_separator) {
+    int len;
 
-    while (read(pipefd_sw[0], &page_size, sizeof(int))) {
-        Page* curr_page = calloc(page_size, sizeof(Page));
+    int lines_counter = 0;
 
-        read(pipefd_sw[0], curr_page, page_size);
-        printf("page size ricevuta: %d %d\n", page_size, sizeof(*curr_page));
+    while (read(pipefd_sw[0], &len, sizeof(int))) {
+        char* line = calloc(len, sizeof(char));
 
-        // TODO: QUESTA COSA NON METTE I SEPARATORI TRA PAGINE
-        // if (curr_page == NULL) {
-        //     printf("mo esplode tutto\n");
-        // }
-        print_pages(output_file, curr_page, spacing, pages_separator, spacing_char);
+        read(pipefd_sw[0], line, len);
+
+        fprintf(output_file, "%s\n", line);
+
+        lines_counter++;
+
+        if (lines_counter == h_col) {
+            fprintf(output_file, pages_separator); // TODO: COME FACCIO A NON STAMPARLO ALLA FINE DELLA PAGINA?!
+
+            lines_counter = 0;
+        }
     }
 }

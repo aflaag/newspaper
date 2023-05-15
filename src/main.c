@@ -130,23 +130,19 @@ int main(int argc, char* argv[]) {
             close(pipefd_rs[1]);
             close(pipefd_sw[0]);
 
-            Page* page = new_page(NULL);
+            Page* page = new_page(NULL); // TODO: LEVALA DA QUA
 
-            int exit_code = build_pages_par(pipefd_rs, pipefd_sw, cols, h_col, page);
+            int exit_code = build_pages_par(pipefd_rs, pipefd_sw, cols, h_col, page, spacing); // TODO: PASSA LO SPACING CHAR
 
             close(pipefd_rs[0]);
             close(pipefd_sw[1]);
-
-            print_pages(output_file, page, spacing, "\n%%%\n\n", ' ');
-
-            // kill(pid, SIGKILL);
         }
     } else {
-        // close(pipefd_sw[1]);
+        close(pipefd_sw[1]);
         
-        // write_output_file_par(pipefd_sw, output_file, spacing, "\n%%%\n\n", ' ');
+        write_output_file_par(pipefd_sw, output_file, h_col, spacing, "\n%%%\n\n");
 
-        // close(pipefd_sw[0]);
+        close(pipefd_sw[0]);
     }
 
     int exit_code = PAGE_SUCCESS;
