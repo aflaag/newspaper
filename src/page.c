@@ -689,6 +689,7 @@ int read_input_file_par(int* pipefd_rs, FILE* input_file, int cols, int h_col, i
 
         write(pipefd_rs[1], &len, sizeof(int));
         write(pipefd_rs[1], line_chunk_content, len);
+        write(pipefd_rs[1], &end_value, sizeof(int));
 
         free(line_chunk_content);
 
@@ -749,26 +750,155 @@ int read_input_file_par(int* pipefd_rs, FILE* input_file, int cols, int h_col, i
 int build_pages_par(int* pipefd_rs, int* pipefd_sw, int cols, int h_col) {
     int len;
 
+    Page* curr_page = new_page(NULL);
+
+    if (curr_page == NULL) {
+        return ALLOC_ERROR;
+    }
+
+    Page* prev_page = NULL;
+
+    int chunks_counter = 0; // il numero di chunk salvati
+    int col_counter = 0; // il numero di colonne salvate
+
+    // poiché la pagina corrente contiene una lista puntata per le sue righe,
+    // ma l'algoritmo deve posizionare i chunk all'interno di queste "orizzontalmente",
+    // è necessaria una flag che indica se bisogna ancora allocare nuove righe alla pagina,
+    // poiché il numero di righe richieste non è ancora stato raggiunto, oppure in caso contrario,
+    // inizare ad inserire i chunk nelle righe che già sono presenti all'interno della pagina
+    bool h_col_reached = false;
+
+    // questa flag viene attivata se è arrivata la fine di un paragrafo, ed è dunque necessario
+    // inserire una riga completamente vuota nella pagina
+    bool is_new_par = false;
+
     while (read(pipefd_rs[0], &len, sizeof(int))) {
         char* line_chunk_content = calloc(len, sizeof(char));
 
-        read(pipefd_rs[0], line_chunk_content, len);
+        int end_value;
 
-        write(pipefd_sw[1], &len, sizeof(int));
-        write(pipefd_sw[1], line_chunk_content, len);
+        read(pipefd_rs[0], line_chunk_content, len);
+        read(pipefd_rs[0], &end_value, sizeof(int));
+
+        // se la riga letta è completamente vuota, allora non deve essere
+        // neanche inserita all'interno della struttura dati; si noti che questo
+        // caso si verifica solamente al termine del file, ed è dunque sufficiente
+        // eseguire break sul ciclo corrente
+        if (is_empty(line_chunk_content, len)) {
+            // non verrà inserito nella struttura dati, quindi va liberata la sua memoria
+            free(line_chunk_content);
+
+            if (col_counter == 0 && chunks_counter % h_col == 0 && prev_page != NULL) {
+                // free(curr_page); // TODO: lo devo fare? lo devo levare? che cazzo è prev_page?
+
+                // TODO: che cazzo succede qua dentro?
+                prev_page->next_page = NULL;
+
+                curr_page = prev_page;
+
+                return PAGE_SUCCESS;
+            } else {
+                break;
+            }
+        }
+
+        // se il numero di righe richiesto in input non è stato ancora raggiunto,
+        // allora è necessario continuare ad allocare righe all'interno della pagina corrente
+        if (!h_col_reached) {
+            if (append_line_and_advance(&curr_page, NULL) == NULL) {
+                // free(line_chunk_content);
+
+                return ALLOC_ERROR;
+            }
+
+            // poiché la pagina fornita in input potrebbe non contenere righe, è necessario
+            // settare il puntatore alla testa della lista puntata delle righe
+            // (la funzione si cura di non sovrascrivere il puntatore se già è settato)
+            set_lines_head(curr_page);
+        }
+
+        // viene inserito il chunk corrente, all'interno della lista puntata di chunk della riga corrente
+        if (append_line_chunk_and_advance((Line**) &curr_page->curr_line, line_chunk_content) == NULL) {
+            // free(line_chunk_content);
+
+            return ALLOC_ERROR;
+        }
+
+        // analogamente, se la riga non aveva chunk, viene settato il puntatore alla testa
+        // della lista puntata di chunk
+        set_line_chunks_head((Line*) curr_page->curr_line);
+
+        // se il testo è terminato all'interno del chunk corrente, bisogna terminare il ciclo;
+        // si noti che non ci sono regioni di memoria allocate da liberare, poiché il contenuto
+        // del chunk, a questo punto del codice, è stato inserito all'interno della struttura dati
+        if (end_value == ENDED_TEXT) {
+            break;
+        }
+
+        // se il numero di righe richiesto all'interno della pagina corrente è stato raggiunto,
+        // non bisogna continuare ad allocare righe, ma bisogna modificare il puntatore della riga corrente,
+        // semplicemente avanzandolo
+        if (h_col_reached) {
+            advance_curr_line(curr_page);
+        }
+
+        chunks_counter++;
+
+        // se il numero di chunk scritti è divisibile per il numero di righe per pagina richiesto, allora
+        // sono state scritte righe a sufficienza, e dunque la colonna deve terminare
+        if (chunks_counter % h_col == 0) {
+            // viene settata la flag che servirà a far sapere che non bisogna più allocare righe
+            // per i prossimi chunk
+            h_col_reached = true;
+
+            col_counter++;
+
+            // viene resettato il puntatore della riga corrente, con il puntatore della testa,
+            // in modo da ripartire dalla prima riga
+            reset_lines_head(curr_page); 
+        }
+
+        if (col_counter == cols) {
+            // se il numero di colonne massimo è stato raggiunto, allora bisogna allocare una nuova pagina
+            int page_size = sizeof(*curr_page);
+            printf("page size: %d\n", page_size);
+
+            write(pipefd_sw[1], &page_size, sizeof(int));
+            write(pipefd_sw[1], curr_page, page_size);
+
+            Page* new_page = append_page(curr_page, NULL);
+
+            if (new_page == NULL) {
+                return ALLOC_ERROR;
+            }
+
+            prev_page = curr_page;
+            curr_page = new_page;
+
+            // bisogna resettare questa flag, poiché la nuova pagina non avrà alcuna riga inizialmente
+            h_col_reached = false;
+
+            col_counter = 0;
+        }
+
     }
 
     return PAGE_SUCCESS;
 }
 
 void write_output_file_par(int* pipefd_sw, FILE* output_file, int spacing, char* pages_separator, char spacing_char) {
-    int len;
+    int page_size;
 
-    while (read(pipefd_sw[0], &len, sizeof(int))) {
-        char* line_chunk_content = calloc(len, sizeof(char));
+    while (read(pipefd_sw[0], &page_size, sizeof(int))) {
+        Page* curr_page = calloc(page_size, sizeof(Page));
 
-        read(pipefd_sw[0], line_chunk_content, len);
+        read(pipefd_sw[0], curr_page, page_size);
+        printf("page size ricevuta: %d %d\n", page_size, sizeof(*curr_page));
 
-        fprintf(output_file, "RICEVUTO: %s\n", line_chunk_content);
+        // TODO: QUESTA COSA NON METTE I SEPARATORI TRA PAGINE
+        // if (curr_page == NULL) {
+        //     printf("mo esplode tutto\n");
+        // }
+        print_pages(output_file, curr_page, spacing, pages_separator, spacing_char);
     }
 }
