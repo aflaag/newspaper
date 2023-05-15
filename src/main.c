@@ -116,17 +116,6 @@ int main(int argc, char* argv[]) {
             break;
     }
 
-    // Page* a = pages;
-
-    // int c= 0;
-
-    // while (a != NULL) {
-    //     a = (Page*) a->next_page;
-    //     c++;
-    // }
-
-    // printf("%d\n", c);
-
     free_pages(pages);
 
     if (fclose(output_file)) {
