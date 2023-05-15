@@ -70,8 +70,14 @@ TODO: spiega la struttura del programma
 
 ## TODO list
 
-- fixa il bug delle ultime righe
-- vedi se è possibile spostare l'invio della riga nel momento in cui la creazione della riga termina (probabilmente si ma non capisco bene come perche non ricordo cosa col_counter faccia)
+- me pare che la lista sia comleta, me pare
+- controlla le cose da fare free, lettura e scrittura dovrebbero andare perfettamente, store NO
+- scrvere i commenti in testa alle funzioni
+- riscrivere parse_args
+- riscrivere il main
+- fare la/le funzione/funzioni per quello sgorbio in build_par
+- gestire l'errore possibile di close
+- gestire gli errori dei processi
 - l'help message tecnicamente non dovrebbe stare dove sta, magari prova a chiedere al prof o boh
 - capire come funzionano gli includes negli headers (?!)
 - fare questo readme

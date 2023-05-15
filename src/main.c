@@ -137,9 +137,7 @@ int main(int argc, char* argv[]) {
             close(pipefd_rs[1]);
             close(pipefd_sw[0]);
 
-            Page* page = new_page(NULL); // TODO: LEVALA DA QUA
-
-            int exit_code = build_pages_par(pipefd_rs, pipefd_sw, cols, h_col, spacing); // TODO: PASSA LO SPACING CHAR
+            int exit_code = build_pages_par(pipefd_rs, pipefd_sw, cols, h_col, spacing, ' '); // TODO: PASSA LO SPACING CHAR
 
             switch (exit_code)  {
                 case ALLOC_ERROR:
@@ -151,6 +149,10 @@ int main(int argc, char* argv[]) {
                 case INVALID_INPUT:
                 case FSEEK_ERROR:
                     fprintf(stderr, "An error occurred while running the program.\n");
+                    break;
+                case READ_ERROR:
+                case WRITE_ERROR:
+                    fprintf(stderr, "An error occurred while reading or writing from the pipe.\n");
                     break;
                 case PAGE_SUCCESS:
                     break;
@@ -164,7 +166,11 @@ int main(int argc, char* argv[]) {
     } else {
         close(pipefd_sw[1]);
         
-        write_output_file_par(pipefd_sw, output_file, h_col, spacing, "\n%%%%%%\n\n");
+        int exit_code = write_output_file_par(pipefd_sw, output_file, h_col, spacing, "\n%%%%%%\n\n");
+
+        switch (exit_code) {
+            // TODO: QUI
+        }
 
         if (fclose(output_file)) {
             fprintf(stderr, "An error occurred while trying to closing the output file '%s'.\n", output_path);
@@ -174,6 +180,7 @@ int main(int argc, char* argv[]) {
         close(pipefd_sw[0]);
     }
 
+    // TODO: questi misa che vanno pensati bene
     switch (exit_code)  {
         case ALLOC_ERROR:
             return ALLOCATION_FAILURE;
