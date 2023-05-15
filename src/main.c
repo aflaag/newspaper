@@ -1,5 +1,7 @@
 #include <stdio.h>
 #include <string.h>
+#include <unistd.h>
+#include <sys/types.h>
 
 #include "args.h"
 #include "page.h"
@@ -75,7 +77,31 @@ int main(int argc, char* argv[]) {
         return ALLOCATION_FAILURE;
     }
 
-    int exit_code = build_pages(input_file, pages, cols, h_col, w_col);
+    // int exit_code = build_pages(input_file, pages, cols, h_col, w_col);
+    int pipefd_rs[2];
+    pipe(pipefd_rs);
+
+    pid_t pid = fork();
+
+    if (pid == -1) {
+        return -1; // TODO: DA GESTIRE
+    } else if (pid == 0) {
+        close(pipefd_rs[0]);
+
+        int exit_code = read_input_file_par(pipefd_rs, input_file, cols, h_col, w_col);
+
+        close(pipefd_rs[1]);
+    } else {
+        close(pipefd_rs[1]);
+
+        int exit_code = build_pages_par(pipefd_rs, cols, h_col);
+
+        close(pipefd_rs[0]);
+    }
+
+    int exit_code = PAGE_SUCCESS;
+
+    return 0;
 
     if (fclose(input_file)) {
         fprintf(stderr, "An error occurred while trying to closing the input file '%s'.\n", input_path);

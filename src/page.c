@@ -575,3 +575,185 @@ void free_pages(Page* page) {
 
     free(page);
 }
+
+int read_input_file_par(int* pipefd_rs, FILE* input_file, int cols, int h_col, int w_col) {
+    int chunks_counter = 0; // il numero di chunk salvati
+    int col_counter = 0; // il numero di colonne salvate
+
+    bool prev_page = false;
+
+    // poiché la pagina corrente contiene una lista puntata per le sue righe,
+    // ma l'algoritmo deve posizionare i chunk all'interno di queste "orizzontalmente",
+    // è necessaria una flag che indica se bisogna ancora allocare nuove righe alla pagina,
+    // poiché il numero di righe richieste non è ancora stato raggiunto, oppure in caso contrario,
+    // inizare ad inserire i chunk nelle righe che già sono presenti all'interno della pagina
+    bool h_col_reached = false;
+
+    // questa flag viene attivata se è arrivata la fine di un paragrafo, ed è dunque necessario
+    // inserire una riga completamente vuota nella pagina
+    bool is_new_par = false;
+
+    while (!feof(input_file)) {
+        long curr_pos = ftell(input_file);
+
+        // spazio per il prossimo chunk da leggere (più il null byte)
+        char* line_chunk_content = calloc(w_col + 1, sizeof(char));
+
+        // il numero di caratteri unicode che verranno incontrati all'interno
+        // del chunk che verrà letto
+        int unicode_offset = 0;
+
+        int end_value = NOT_ENDED_TEXT;
+
+        if (!is_new_par) {
+            end_value = read_chunk(input_file, &line_chunk_content, &w_col, &curr_pos, &unicode_offset, col_counter == 0 && chunks_counter == 0);
+
+            if (end_value == ALLOC_ERROR || end_value == FSEEK_ERROR) {
+                free(line_chunk_content);
+
+                // il puntatore della pagina viene comunque aggiornato, poichè sino al momento dell'errore,
+                // le pagine sono comunque state accomulate correttamente, ed è comunque possibile utilizzarle
+
+                return end_value;
+            } else if (end_value == INVALID_INPUT) {
+                // in questo branch, qualcosa è andato storto nel programma, e potrebbe essersi verificato che 
+                // l'area del chunk corrente non sia valida, e dunque liberarne la memoria potrebbe
+                // portare ad un double free
+                return INVALID_INPUT;
+            }
+
+            int w_col_backup = w_col;
+
+            int trunc_err = TRUNCATED_HANDLING_SUCCESS;
+            
+            if (end_value != ENDED_TEXT) {
+                trunc_err = handle_truncated_string(input_file, &line_chunk_content, &w_col, &curr_pos);
+            }
+
+            if (trunc_err != TRUNCATED_HANDLING_SUCCESS) {
+                if (trunc_err != INVALID_INPUT) {
+                    free(line_chunk_content);
+                }
+                
+                return trunc_err;
+            }
+
+            // vengono rimpiazzati caratteri eventuali '\n', '\r' e '\t', poiché
+            // altrimenti potrebbero disallineare le colonne in output
+            string_replace(line_chunk_content, '\n', ' ');
+            string_replace(line_chunk_content, '\t', ' ');
+            string_replace(line_chunk_content, '\r', ' ');
+
+            if (end_value != ENDED_PARAGRAPH) {
+                // se la riga corrente non è l'ultima di un paragrafo, allora deve essere giustificata
+                justify_string(line_chunk_content, w_col);
+            } else {
+                // la flag viene settata per la prossima iterazione del ciclo, poiché la riga corrente è l'ultima
+                // del paragrafo, e quindi la prossima dovrà essere una riga completamente vuota
+                is_new_par = true;
+            }
+
+            w_col = w_col_backup;
+        } else {
+            is_new_par = false;
+
+            // se la flag 'is_new_par' era stata settata true, allora la riga precedente
+            // era l'ultima riga di un paragrafo, e dunque la riga corrente deve essere
+            // completamente riempita con spazi, ignorando il contenuto del file
+            pad_string(line_chunk_content, 0, w_col, ' ');
+
+            // con questa operazione ci si assicura che non venga aumentata la posizione all'interno
+            // del file, altrimenti si salterebbe una riga
+            curr_pos -= w_col;
+        }
+
+        // se la riga letta è completamente vuota, allora non deve essere
+        // neanche inserita all'interno della struttura dati; si noti che questo
+        // caso si verifica solamente al termine del file, ed è dunque sufficiente
+        // eseguire break sul ciclo corrente
+        if (is_empty(line_chunk_content, w_col)) {
+            // non verrà inserito nella struttura dati, quindi va liberata la sua memoria
+            free(line_chunk_content);
+
+            if (col_counter == 0 && chunks_counter % h_col == 0 && prev_page) {
+
+                return PAGE_SUCCESS;
+            } else {
+                break;
+            }
+        }
+
+        // printf("%s\n", line_chunk_content);
+
+        int len = strlen(line_chunk_content) + 1;
+
+        write(pipefd_rs[1], &len, sizeof(int));
+        write(pipefd_rs[1], line_chunk_content, len);
+
+        // se il testo è terminato all'interno del chunk corrente, bisogna terminare il ciclo;
+        // si noti che non ci sono regioni di memoria allocate da liberare, poiché il contenuto
+        // del chunk, a questo punto del codice, è stato inserito all'interno della struttura dati
+        if (end_value == ENDED_TEXT) {
+            break;
+        }
+
+        // se il numero di righe richiesto all'interno della pagina corrente è stato raggiunto,
+        // non bisogna continuare ad allocare righe, ma bisogna modificare il puntatore della riga corrente,
+        // semplicemente avanzandolo
+
+        chunks_counter++;
+
+        // se il numero di chunk scritti è divisibile per il numero di righe per pagina richiesto, allora
+        // sono state scritte righe a sufficienza, e dunque la colonna deve terminare
+        if (chunks_counter % h_col == 0) {
+            // viene settata la flag che servirà a far sapere che non bisogna più allocare righe
+            // per i prossimi chunk
+            h_col_reached = true;
+
+            col_counter++;
+
+            // viene resettato il puntatore della riga corrente, con il puntatore della testa,
+            // in modo da ripartire dalla prima riga
+        }
+
+        if (col_counter == cols) {
+            // se il numero di colonne massimo è stato raggiunto, allora bisogna allocare una nuova pagina
+
+            prev_page = true;
+
+            // bisogna resettare questa flag, poiché la nuova pagina non avrà alcuna riga inizialmente
+            h_col_reached = false;
+
+            col_counter = 0;
+        }
+
+        // viene incrementata la posizione nel file, sommando alla posizione corrente la larghezza
+        // del chunk *scritto* (si noti che 'w_col' potrebbe subire modifiche all'interno del programma
+        // a seconda del numero di byte letti)
+        if (fseek(input_file, curr_pos + w_col, SEEK_SET)) {
+            return FSEEK_ERROR;
+        }
+
+        // viene resettato il valore iniziale di w_col, rimuovendo il numero di byte unicode speciali letti
+        w_col -= unicode_offset;
+    }
+
+    // viene resettato il puntatore alla prima pagina, poiché al termine della lettura
+    // 'curr_page' punterà all'ultima pagina
+
+    return PAGE_SUCCESS;
+}
+
+int build_pages_par(int* pipefd_rs, int cols, int h_col) {
+    int len;
+
+    while (read(pipefd_rs[0], &len, sizeof(int))) {
+        char* line_chunk_content = calloc(len, sizeof(char));
+
+        read(pipefd_rs[0], line_chunk_content, len);
+
+        printf("RICEVUTO: %s\n", line_chunk_content);
+    }
+
+    return PAGE_SUCCESS;
+}
