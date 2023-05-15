@@ -17,6 +17,8 @@
 #define OUTPUT_FILE_CLOSING_FAILURE -7 // restituita se non è stato possibile chiudere il file di output
 #define INVALID_INPUT_TEXT -8 // restituita se il file di input conteneva parole più larghe della larghezza di colonna specificata
 #define UNKNOWN_ERROR -9 // restituita se si sono verificati errori di natura ignota
+#define FORK_ERROR -10
+#define PIPE_ERROR -11
 
 int main(int argc, char* argv[]) {
     int cols;
@@ -27,16 +29,10 @@ int main(int argc, char* argv[]) {
     char* input_path;
     char* output_path;
     
-    // bool debug = true;
-    bool debug = false;
-
-    int args_err = 0;
-
-    if (!debug) {
-        args_err = parse_args(argc, argv, &input_path, &output_path, &cols, &h_col, &w_col, &spacing);
-    } else {
-        printf("DEBUG ATTIVO ");
-    }
+    // TODO: cambiare questo, deve accattare in input anche la flag per il multiprocesso,
+    // e vanno fatte 2 funzioni qui nel main, in cui una runna il programma mono processo,
+    // e l'altra multi processo
+    int args_err = parse_args(argc, argv, &input_path, &output_path, &cols, &h_col, &w_col, &spacing);
 
     switch (args_err) {
         case NOT_ENOUGH_ARGS:
@@ -61,28 +57,12 @@ int main(int argc, char* argv[]) {
 
     FILE* input_file = fopen(input_path, "r");
 
-    if (debug) {
-        // cols = 3; h_col = 40; w_col = 21; spacing = 10; input_file = fopen("/home/aless/Desktop/codes/misc/c/newspaper/sample_inputs/lorem_long_in.txt", "r");
-        cols = 3; h_col = 40; w_col = 21; spacing = 10; input_file = fopen("/home/aless/Desktop/codes/misc/c/newspaper/sample_inputs/lorem_long_in.txt", "r");
-    }
-
     if (input_file == NULL) {
         fprintf(stderr, "An error occurred while trying to open the input file '%s'.\n", input_path);
         return INVALID_INPUT_FILE;
     }
 
-    Page* pages = new_page(NULL);
-
-    if (pages == NULL) {
-        fprintf(stderr, "An error occurred while trying to allocate memory in the program.\n");
-        return ALLOCATION_FAILURE;
-    }
-
     FILE* output_file = fopen(output_path, "a");
-
-    if (debug) {
-        output_file = fopen("/home/aless/Desktop/codes/misc/c/newspaper/output.txt", "a");
-    }
 
     if (output_file == NULL) {
         fprintf(stderr, "An error occurred while trying to open the output file '%s'.\n", output_path);
@@ -94,31 +74,58 @@ int main(int argc, char* argv[]) {
         return NON_EMPTY_OUTPUT_FILE;
     }
 
-    // int exit_code = build_pages(input_file, pages, cols, h_col, w_col);
-
     int pipefd_sw[2];
-    pipe(pipefd_sw);
+
+    if (pipe(pipefd_sw) == -1) {
+        fprintf(stderr, "An error has occured while trying to setup the multiprocessing.\n");
+        return PIPE_ERROR;
+    }
 
     pid_t pid = fork();
 
     if (pid == -1) {
-        return -1; // TODO: DA GESTIRE
+        fprintf(stderr, "An error has occurred while trying to fork.\n");
+        return FORK_ERROR;
     }
     
+    int exit_code;
+
     if (pid == 0) {
         int pipefd_rs[2];
-        pipe(pipefd_rs);
+
+        if (pipe(pipefd_rs) == -1) {
+            fprintf(stderr, "An error has occured while trying to setup the multiprocessing.\n");
+            return PIPE_ERROR;
+        }
 
         pid = fork();
 
         if (pid == -1) {
-            return -1; // TODO: DA GESTIRE
+            fprintf(stderr, "An error has occurred while trying to fork.\n");
+            return FORK_ERROR;
         }
         
         if (pid == 0) {
             close(pipefd_rs[0]);
 
-            int exit_code = read_input_file_par(pipefd_rs, input_file, cols, h_col, w_col);
+            exit_code = read_input_file_par(pipefd_rs, input_file, cols, h_col, w_col);
+
+            switch (exit_code)  {
+                case ALLOC_ERROR:
+                    fprintf(stderr, "An error occurred while trying to allocate memory in the program.\n");
+                    break;
+                case INSUFFICIENT_WIDTH:
+                    fprintf(stderr, "The file given as input contains words that are larger than the width provided.\n\nSee '--help' for more information\n");
+                    break;
+                case INVALID_INPUT:
+                case FSEEK_ERROR:
+                    fprintf(stderr, "An error occurred while running the program.\n");
+                    break;
+                case PAGE_SUCCESS:
+                    break;
+                default:
+                    break;
+            }
 
             if (fclose(input_file)) {
                 fprintf(stderr, "An error occurred while trying to closing the input file '%s'.\n", input_path);
@@ -132,7 +139,24 @@ int main(int argc, char* argv[]) {
 
             Page* page = new_page(NULL); // TODO: LEVALA DA QUA
 
-            int exit_code = build_pages_par(pipefd_rs, pipefd_sw, cols, h_col, page, spacing); // TODO: PASSA LO SPACING CHAR
+            int exit_code = build_pages_par(pipefd_rs, pipefd_sw, cols, h_col, spacing); // TODO: PASSA LO SPACING CHAR
+
+            switch (exit_code)  {
+                case ALLOC_ERROR:
+                    fprintf(stderr, "An error occurred while trying to allocate memory in the program.\n");
+                    break;
+                case INSUFFICIENT_WIDTH:
+                    fprintf(stderr, "The file given as input contains words that are larger than the width provided.\n\nSee '--help' for more information\n");
+                    break;
+                case INVALID_INPUT:
+                case FSEEK_ERROR:
+                    fprintf(stderr, "An error occurred while running the program.\n");
+                    break;
+                case PAGE_SUCCESS:
+                    break;
+                default:
+                    break;
+            }
 
             close(pipefd_rs[0]);
             close(pipefd_sw[1]);
@@ -142,36 +166,12 @@ int main(int argc, char* argv[]) {
         
         write_output_file_par(pipefd_sw, output_file, h_col, spacing, "\n%%%%%%\n\n");
 
+        if (fclose(output_file)) {
+            fprintf(stderr, "An error occurred while trying to closing the output file '%s'.\n", output_path);
+            return OUTPUT_FILE_CLOSING_FAILURE;
+        }
+
         close(pipefd_sw[0]);
-    }
-
-    int exit_code = PAGE_SUCCESS;
-
-    return 0;
-
-    switch (exit_code)  {
-        case ALLOC_ERROR:
-            fprintf(stderr, "An error occurred while trying to allocate memory in the program.\n");
-            break;
-        case INSUFFICIENT_WIDTH:
-            fprintf(stderr, "The file given as input contains words that are larger than the width provided.\n\nSee '--help' for more information\n");
-            break;
-        case INVALID_INPUT:
-        case FSEEK_ERROR:
-            fprintf(stderr, "An error occurred while running the program.\n");
-            break;
-        case PAGE_SUCCESS:
-            print_pages(output_file, pages, spacing, "\n%%%\n\n", ' ');
-            break;
-        default:
-            break;
-    }
-
-    free_pages(pages);
-
-    if (fclose(output_file)) {
-        fprintf(stderr, "An error occurred while trying to closing the output file '%s'.\n", output_path);
-        return OUTPUT_FILE_CLOSING_FAILURE;
     }
 
     switch (exit_code)  {

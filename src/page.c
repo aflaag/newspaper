@@ -747,10 +747,10 @@ int read_input_file_par(int* pipefd_rs, FILE* input_file, int cols, int h_col, i
     return PAGE_SUCCESS;
 }
 
-int build_pages_par(int* pipefd_rs, int* pipefd_sw, int cols, int h_col, Page* curr_page, int spacing) {
+int build_pages_par(int* pipefd_rs, int* pipefd_sw, int cols, int h_col, int spacing) {
     int len;
 
-    // Page* curr_page = new_page(NULL);
+    Page* curr_page = new_page(NULL);
 
     if (curr_page == NULL) {
         return ALLOC_ERROR;
