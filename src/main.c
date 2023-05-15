@@ -63,7 +63,7 @@ int main(int argc, char* argv[]) {
 
     if (debug) {
         // cols = 3; h_col = 40; w_col = 21; spacing = 10; input_file = fopen("/home/aless/Desktop/codes/misc/c/newspaper/sample_inputs/lorem_long_in.txt", "r");
-        cols = 3; h_col = 5; w_col = 15; spacing = 5; input_file = fopen("/home/aless/Desktop/codes/misc/c/newspaper/sample_inputs/example2_in.txt", "r");
+        cols = 3; h_col = 40; w_col = 21; spacing = 10; input_file = fopen("/home/aless/Desktop/codes/misc/c/newspaper/sample_inputs/lorem_long_in.txt", "r");
     }
 
     if (input_file == NULL) {

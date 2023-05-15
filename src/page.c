@@ -796,7 +796,9 @@ int build_pages_par(int* pipefd_rs, int* pipefd_sw, int cols, int h_col, Page* c
 
                 curr_page = prev_page;
 
-                return PAGE_SUCCESS;
+                // TODO: CHE SUCCEDE QUA?
+                // return PAGE_SUCCESS;
+                break;
             } else {
                 break;
             }
@@ -950,12 +952,13 @@ int build_pages_par(int* pipefd_rs, int* pipefd_sw, int cols, int h_col, Page* c
                     char* new_joined_line;
 
                     int len_backup = len;
+                    // printf("%s\n", lc->content);
 
                     if (lc->next_line_chunk != NULL) {
                         new_joined_line = calloc(len + strlen(lc->content) + spacing, sizeof(char));
                         len += strlen(lc->content) + spacing;
                     } else {
-                        char* new_joined_line = calloc(len + strlen(lc->content), sizeof(char));
+                        new_joined_line = calloc(len + strlen(lc->content), sizeof(char));
                         len += strlen(lc->content);
                     }
 
@@ -964,8 +967,6 @@ int build_pages_par(int* pipefd_rs, int* pipefd_sw, int cols, int h_col, Page* c
                     }
 
                     memcpy(new_joined_line, joined_line, len_backup);
-
-                    // free(joined_line);
 
                     strcat(new_joined_line, lc->content);
 
@@ -976,6 +977,8 @@ int build_pages_par(int* pipefd_rs, int* pipefd_sw, int cols, int h_col, Page* c
                         }
                     }
 
+                    // free(joined_line);
+
                     joined_line = new_joined_line;
 
                     // printf("%s\n", joined_line);
@@ -983,6 +986,7 @@ int build_pages_par(int* pipefd_rs, int* pipefd_sw, int cols, int h_col, Page* c
                     lc = lc->next_line_chunk;
                 }
 
+                // printf("%s\n", joined_line);
                 // TODO: ATTENZIONE CHE NON MANDO \n, CE LO DEVE METTERE IL TERZO PROCESSO (IDEM PER SEPARATORE TRA PAGINE)
 
                 len++;
@@ -992,6 +996,8 @@ int build_pages_par(int* pipefd_rs, int* pipefd_sw, int cols, int h_col, Page* c
                 // free(joined_line);
 
                 l = l->next_line;
+                // printf("%d\n", strlen(joined_line));
+                // free(joined_line);
             }
 
     return PAGE_SUCCESS;
