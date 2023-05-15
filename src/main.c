@@ -140,7 +140,7 @@ int main(int argc, char* argv[]) {
     } else {
         close(pipefd_sw[1]);
         
-        write_output_file_par(pipefd_sw, output_file, h_col, spacing, "\n%%%\n\n");
+        write_output_file_par(pipefd_sw, output_file, h_col, spacing, "\n%%%%%%\n\n");
 
         close(pipefd_sw[0]);
     }
