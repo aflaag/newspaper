@@ -772,7 +772,7 @@ int build_pages_par(int* pipefd_rs, int* pipefd_sw, int cols, int h_col, Page* c
     // inserire una riga completamente vuota nella pagina
     bool is_new_par = false;
 
-    bool is_last_page = false;
+    // bool is_last_page = false;
 
     while (read(pipefd_rs[0], &len, sizeof(int))) {
         char* line_chunk_content = calloc(len, sizeof(char));
@@ -797,6 +797,9 @@ int build_pages_par(int* pipefd_rs, int* pipefd_sw, int cols, int h_col, Page* c
                 prev_page->next_page = NULL;
 
                 curr_page = prev_page;
+
+                // printf("la sto chiudendo qua?\n");
+                // is_last_page = true;
 
                 // TODO: CHE SUCCEDE QUA?
                 // return PAGE_SUCCESS;
@@ -919,8 +922,9 @@ int build_pages_par(int* pipefd_rs, int* pipefd_sw, int cols, int h_col, Page* c
                 len++;
                 write(pipefd_sw[1], &len, sizeof(int));
                 write(pipefd_sw[1], joined_line, len);
-                write(pipefd_sw[1], &is_last_page, sizeof(bool));
+                // write(pipefd_sw[1], &is_last_page, sizeof(bool));
 
+                // printf("mandato: %s\n", joined_line);
                 // free(joined_line);
 
                 l = l->next_line;
@@ -943,7 +947,13 @@ int build_pages_par(int* pipefd_rs, int* pipefd_sw, int cols, int h_col, Page* c
 
     }
 
-    is_last_page = true;
+    // TODO: ANDREBBE FATTO?
+    if (curr_page == NULL) {
+        // printf("c'entra ve?\n");
+        return PAGE_SUCCESS;
+    }
+
+    // is_last_page = true;
             Line* l = curr_page->lines_head;
 
             while (l != NULL) {
@@ -996,7 +1006,7 @@ int build_pages_par(int* pipefd_rs, int* pipefd_sw, int cols, int h_col, Page* c
                 len++;
                 write(pipefd_sw[1], &len, sizeof(int));
                 write(pipefd_sw[1], joined_line, len);
-                write(pipefd_sw[1], &is_last_page, sizeof(bool));
+                // write(pipefd_sw[1], &is_last_page, sizeof(bool));
 
                 // free(joined_line);
 
@@ -1013,22 +1023,42 @@ void write_output_file_par(int* pipefd_sw, FILE* output_file, int h_col, int spa
 
     int lines_counter = 0;
 
-    bool is_last_page = false;
+    // bool is_last_page = false;
 
-    while (read(pipefd_sw[0], &len, sizeof(int))) {
+    int read_code = read(pipefd_sw[0], &len, sizeof(int));
+
+    if (read_code <= 0) {
+        // TODO: gestisci
+        return;
+    }
+
+    while (true) {
         char* line = calloc(len, sizeof(char));
 
         read(pipefd_sw[0], line, len);
-        read(pipefd_sw[0], &is_last_page, sizeof(bool));
+        // read(pipefd_sw[0], &is_last_page, sizeof(bool));
 
+        // fprintf(stdout, "ricevuto: %s %d\n", line, len);
+        // fprintf(stdout, "%d\n", is_last_page ? 1 : 0);
         fprintf(output_file, "%s\n", line);
 
         lines_counter++;
 
-        if (lines_counter == h_col && !is_last_page) {
-            fprintf(output_file, pages_separator); // TODO: COME FACCIO A NON STAMPARLO ALLA FINE DELLA PAGINA?!
+        read_code = read(pipefd_sw[0], &len, sizeof(int));
 
-            lines_counter = 0;
+        if (read_code != 0) {
+            if (read_code < 0) {
+                // TODO: RITORNA ERRORE
+                return;
+            }
+
+            if (lines_counter == h_col) {
+                fprintf(output_file, pages_separator); // TODO: COME FACCIO A NON STAMPARLO ALLA FINE DELLA PAGINA?!
+
+                lines_counter = 0;
+            }
+        } else {
+            break;
         }
     }
 }
