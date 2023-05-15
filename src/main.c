@@ -2,6 +2,7 @@
 #include <string.h>
 #include <unistd.h>
 #include <sys/types.h>
+#include <signal.h>
 
 #include "args.h"
 #include "page.h"
@@ -129,17 +130,23 @@ int main(int argc, char* argv[]) {
             close(pipefd_rs[1]);
             close(pipefd_sw[0]);
 
-            int exit_code = build_pages_par(pipefd_rs, pipefd_sw, cols, h_col);
+            Page* page = new_page(NULL);
+
+            int exit_code = build_pages_par(pipefd_rs, pipefd_sw, cols, h_col, page);
 
             close(pipefd_rs[0]);
             close(pipefd_sw[1]);
+
+            print_pages(output_file, page, spacing, "\n%%%\n\n", ' ');
+
+            // kill(pid, SIGKILL);
         }
     } else {
-        close(pipefd_sw[1]);
+        // close(pipefd_sw[1]);
         
-        write_output_file_par(pipefd_sw, output_file, spacing, "\n%%%\n\n", ' ');
+        // write_output_file_par(pipefd_sw, output_file, spacing, "\n%%%\n\n", ' ');
 
-        close(pipefd_sw[0]);
+        // close(pipefd_sw[0]);
     }
 
     int exit_code = PAGE_SUCCESS;

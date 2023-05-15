@@ -747,10 +747,10 @@ int read_input_file_par(int* pipefd_rs, FILE* input_file, int cols, int h_col, i
     return PAGE_SUCCESS;
 }
 
-int build_pages_par(int* pipefd_rs, int* pipefd_sw, int cols, int h_col) {
+int build_pages_par(int* pipefd_rs, int* pipefd_sw, int cols, int h_col, Page* curr_page) {
     int len;
 
-    Page* curr_page = new_page(NULL);
+    // Page* curr_page = new_page(NULL);
 
     if (curr_page == NULL) {
         return ALLOC_ERROR;
@@ -860,11 +860,11 @@ int build_pages_par(int* pipefd_rs, int* pipefd_sw, int cols, int h_col) {
 
         if (col_counter == cols) {
             // se il numero di colonne massimo è stato raggiunto, allora bisogna allocare una nuova pagina
-            int page_size = sizeof(*curr_page);
-            printf("page size: %d\n", page_size);
+            // int page_size = sizeof(*curr_page);
+            // printf("page size: %d\n", page_size);
 
-            write(pipefd_sw[1], &page_size, sizeof(int));
-            write(pipefd_sw[1], curr_page, page_size);
+            // write(pipefd_sw[1], &page_size, sizeof(int));
+            // write(pipefd_sw[1], curr_page, page_size);
 
             Page* new_page = append_page(curr_page, NULL);
 

@@ -10,6 +10,8 @@ run_test() {
     printf "Test $1: "
     ./newspaper $1 output.txt $3 $4 $5 $6
 
+    sleep .25
+
     if command diff output.txt $2 &> /dev/null
     then
         echo "passed ✅"
