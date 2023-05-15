@@ -77,37 +77,6 @@ int main(int argc, char* argv[]) {
         return ALLOCATION_FAILURE;
     }
 
-    // int exit_code = build_pages(input_file, pages, cols, h_col, w_col);
-    int pipefd_rs[2];
-    pipe(pipefd_rs);
-
-    pid_t pid = fork();
-
-    if (pid == -1) {
-        return -1; // TODO: DA GESTIRE
-    } else if (pid == 0) {
-        close(pipefd_rs[0]);
-
-        int exit_code = read_input_file_par(pipefd_rs, input_file, cols, h_col, w_col);
-
-        close(pipefd_rs[1]);
-    } else {
-        close(pipefd_rs[1]);
-
-        int exit_code = build_pages_par(pipefd_rs, cols, h_col);
-
-        close(pipefd_rs[0]);
-    }
-
-    int exit_code = PAGE_SUCCESS;
-
-    return 0;
-
-    if (fclose(input_file)) {
-        fprintf(stderr, "An error occurred while trying to closing the input file '%s'.\n", input_path);
-        return INPUT_FILE_CLOSING_FAILURE;
-    }
-
     FILE* output_file = fopen(output_path, "a");
 
     if (debug) {
@@ -123,6 +92,59 @@ int main(int argc, char* argv[]) {
         fprintf(stderr, "Output file '%s' is not empty, the program will not run.\n\nSee '--help' for more information.\n", output_path);
         return NON_EMPTY_OUTPUT_FILE;
     }
+
+    // int exit_code = build_pages(input_file, pages, cols, h_col, w_col);
+
+    int pipefd_sw[2];
+    pipe(pipefd_sw);
+
+    pid_t pid = fork();
+
+    if (pid == -1) {
+        return -1; // TODO: DA GESTIRE
+    }
+    
+    if (pid == 0) {
+        int pipefd_rs[2];
+        pipe(pipefd_rs);
+
+        pid = fork();
+
+        if (pid == -1) {
+            return -1; // TODO: DA GESTIRE
+        }
+        
+        if (pid == 0) {
+            close(pipefd_rs[0]);
+
+            int exit_code = read_input_file_par(pipefd_rs, input_file, cols, h_col, w_col);
+
+            if (fclose(input_file)) {
+                fprintf(stderr, "An error occurred while trying to closing the input file '%s'.\n", input_path);
+                return INPUT_FILE_CLOSING_FAILURE;
+            }
+
+            close(pipefd_rs[1]);
+        } else {
+            close(pipefd_rs[1]);
+            close(pipefd_sw[0]);
+
+            int exit_code = build_pages_par(pipefd_rs, pipefd_sw, cols, h_col);
+
+            close(pipefd_rs[0]);
+            close(pipefd_sw[1]);
+        }
+    } else {
+        close(pipefd_sw[1]);
+        
+        write_output_file_par(pipefd_sw, output_file, spacing, "\n%%%\n\n", ' ');
+
+        close(pipefd_sw[0]);
+    }
+
+    int exit_code = PAGE_SUCCESS;
+
+    return 0;
 
     switch (exit_code)  {
         case ALLOC_ERROR:

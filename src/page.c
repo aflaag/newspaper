@@ -690,6 +690,8 @@ int read_input_file_par(int* pipefd_rs, FILE* input_file, int cols, int h_col, i
         write(pipefd_rs[1], &len, sizeof(int));
         write(pipefd_rs[1], line_chunk_content, len);
 
+        free(line_chunk_content);
+
         // se il testo è terminato all'interno del chunk corrente, bisogna terminare il ciclo;
         // si noti che non ci sono regioni di memoria allocate da liberare, poiché il contenuto
         // del chunk, a questo punto del codice, è stato inserito all'interno della struttura dati
@@ -744,7 +746,7 @@ int read_input_file_par(int* pipefd_rs, FILE* input_file, int cols, int h_col, i
     return PAGE_SUCCESS;
 }
 
-int build_pages_par(int* pipefd_rs, int cols, int h_col) {
+int build_pages_par(int* pipefd_rs, int* pipefd_sw, int cols, int h_col) {
     int len;
 
     while (read(pipefd_rs[0], &len, sizeof(int))) {
@@ -752,8 +754,21 @@ int build_pages_par(int* pipefd_rs, int cols, int h_col) {
 
         read(pipefd_rs[0], line_chunk_content, len);
 
-        printf("RICEVUTO: %s\n", line_chunk_content);
+        write(pipefd_sw[1], &len, sizeof(int));
+        write(pipefd_sw[1], line_chunk_content, len);
     }
 
     return PAGE_SUCCESS;
+}
+
+void write_output_file_par(int* pipefd_sw, FILE* output_file, int spacing, char* pages_separator, char spacing_char) {
+    int len;
+
+    while (read(pipefd_sw[0], &len, sizeof(int))) {
+        char* line_chunk_content = calloc(len, sizeof(char));
+
+        read(pipefd_sw[0], line_chunk_content, len);
+
+        fprintf(output_file, "RICEVUTO: %s\n", line_chunk_content);
+    }
 }

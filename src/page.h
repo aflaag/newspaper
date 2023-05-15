@@ -48,6 +48,7 @@ void print_pages(FILE* output_file, Page* page, int spacing, char* pages_separat
 void free_pages(Page* page);
 
 int read_input_file_par(int* pipefd_rs, FILE* input_file, int cols, int h_col, int w_col);
-int build_pages_par(int* pipefd_rs, int cols, int h_col);
+int build_pages_par(int* pipefd_rs, int* pipefd_sw, int cols, int h_col);
+void write_output_file_par(int* pipefd_sw, FILE* output_file, int spacing, char* pages_separator, char spacing_char);
 
 #endif
