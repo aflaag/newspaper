@@ -16,8 +16,6 @@
 #define ALLOC_ERROR -2 // restituita se si sono verificati errori di allocazione della memoria
 #define INVALID_INPUT -3 // restituita se si sono verificati degli errori nel fornire input ad alcune funzioni
 #define FSEEK_ERROR -4 // restituita se la funzione fseek non è stata in grado di leggere il carattere alla posizione specificata
-#define READ_ERROR -5
-#define WRITE_ERROR -6
 
 #ifndef PAGE_H
 #define PAGE_H
@@ -48,9 +46,5 @@ int build_pages(FILE* input_file, Page* curr_page, int cols, int h_col, int w_co
 
 void print_pages(FILE* output_file, Page* page, int spacing, char* pages_separator, char spacing_char);
 void free_pages(Page* page);
-
-int read_input_file_par(int* pipefd_rs, FILE* input_file, int cols, int h_col, int w_col);
-int build_pages_par(int* pipefd_rs, int* pipefd_sw, int cols, int h_col, int spacing, char spacing_char);
-int write_output_file_par(int* pipefd_sw, FILE* output_file, int h_col, int spacing, char* pages_separator);
 
 #endif

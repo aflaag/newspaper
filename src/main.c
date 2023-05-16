@@ -6,6 +6,7 @@
 
 #include "args.h"
 #include "page.h"
+#include "page_par.h"
 
 #define PROGRAM_SUCCESS 0 // restituita se non si sono verificati problemi durante l'intera esecuzione del programma
 #define INVALID_INPUT_FILE -1 // restituita se non è stato possibile aprire il file di input nel percorso specificato
