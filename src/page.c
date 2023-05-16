@@ -689,6 +689,78 @@ int read_input_file_par(int* pipefd_rs, FILE* input_file, int cols, int h_col, i
     return PAGE_SUCCESS;
 }
 
+// TODO: GESTIRE I SUOI ERORRI
+// TODO: commenta tutto
+int send_page(Page* curr_page, int* pipefd_sw, int spacing, char spacing_char) {
+    if (curr_page == NULL) {
+        return INVALID_INPUT;
+    }
+
+    Line* line = (Line*) curr_page->lines_head;
+
+    while (line != NULL) {
+        LineChunk* line_chunk = (LineChunk*) line->line_chunks_head;
+
+        char* joined_line = calloc(1, sizeof(char));
+
+        if (joined_line == NULL) {
+            return ALLOC_ERROR;
+        }
+
+        int len = 0;
+
+        while (line_chunk != NULL) {
+            char* content = line_chunk->content;
+            char* new_joined_line;
+
+            int len_backup = len;
+            int content_len = strlen(content);
+
+            if (line_chunk->next_line_chunk != NULL) {
+                new_joined_line = calloc(len + content_len + spacing, sizeof(char));
+
+                len += spacing;
+            } else {
+                new_joined_line = calloc(len + content_len, sizeof(char));
+            }
+
+            if (new_joined_line == NULL) {
+                free(joined_line);
+                return ALLOC_ERROR;
+            }
+
+            len += content_len;
+
+            memcpy(new_joined_line, joined_line, len_backup);
+
+            strcat(new_joined_line, content);
+
+            if (line_chunk->next_line_chunk != NULL) {
+                for (int i = 0; i < spacing; i++) {
+                    new_joined_line[len - spacing + i] = spacing_char;
+                }
+            }
+
+            // free(joined_line); // TODO: PER UNO DEI TEST QUESTA COSA SI ROMPE, MA INVECE ANDREBBE FATTA È IMPORTANTE
+
+            joined_line = new_joined_line;
+
+            line_chunk = (LineChunk*) line_chunk->next_line_chunk;
+        }
+
+        // l'attuale valore della lunghezza non considerava \0 alla fine della stringa,
+        // ma è necessario contare anche quest'ultimo all'inteno della pipe
+        len++;
+
+        // attraverso la pipe, viene prima mandata la lunghezza della riga che sta per
+        // essere inviata, e successivamente viene mandata la riga stessa
+        write(pipefd_sw[1], &len, sizeof(int));
+        write(pipefd_sw[1], joined_line, len);
+
+        line = (Line*) line->next_line;
+    }
+}
+
 int build_pages_par(int* pipefd_rs, int* pipefd_sw, int cols, int h_col, int spacing, char spacing_char) {
     Page* curr_page = new_page(NULL);
     Page* prev_page = NULL;
@@ -764,69 +836,8 @@ int build_pages_par(int* pipefd_rs, int* pipefd_sw, int cols, int h_col, int spa
         }
 
         if (col_counter == cols) {
-            // se il numero di colonne massimo è stato raggiunto, allora bisogna allocare una nuova pagina
-            // int page_size = sizeof(*curr_page);
-            // printf("page size: %d\n", page_size);
-
-            // write(pipefd_sw[1], &page_size, sizeof(int));
-            // write(pipefd_sw[1], curr_page, page_size);
-            Line* l = curr_page->lines_head;
-
-            while (l != NULL) {
-                LineChunk* lc = l->line_chunks_head;
-
-                char* joined_line = calloc(1, sizeof(char));
-                int len = 0;
-
-                while (lc != NULL) {
-                    char* new_joined_line;
-
-                    int len_backup = len;
-
-                    if (lc->next_line_chunk != NULL) {
-                        new_joined_line = calloc(len + strlen(lc->content) + spacing, sizeof(char));
-                        len += strlen(lc->content) + spacing;
-                    } else {
-                        new_joined_line = calloc(len + strlen(lc->content), sizeof(char));
-                        len += strlen(lc->content);
-                    }
-
-                    if (new_joined_line == NULL) {
-                        return ALLOC_ERROR;
-                    }
-
-                    memcpy(new_joined_line, joined_line, len_backup);
-
-                    // free(joined_line);
-
-                    strcat(new_joined_line, lc->content);
-
-                    if (lc->next_line_chunk != NULL) {
-                        for (int i = 0; i < spacing; i++) {
-                            // strcat(new_joined_line, ' '); // TODO: SPACING CHAR
-                            new_joined_line[len - spacing + i] = spacing_char;
-                        }
-                    }
-
-                    joined_line = new_joined_line;
-
-                    // printf("%s\n", joined_line);
-
-                    lc = lc->next_line_chunk;
-                }
-
-                // TODO: ATTENZIONE CHE NON MANDO \n, CE LO DEVE METTERE IL TERZO PROCESSO (IDEM PER SEPARATORE TRA PAGINE)
-
-                len++;
-                write(pipefd_sw[1], &len, sizeof(int));
-                write(pipefd_sw[1], joined_line, len);
-                // write(pipefd_sw[1], &is_last_page, sizeof(bool));
-
-                // printf("mandato: %s\n", joined_line);
-                // free(joined_line);
-
-                l = l->next_line;
-            }
+            // se la pagina è stata completata, allora viene mandata al processo di scrittura
+            send_page(curr_page, pipefd_sw, spacing, spacing_char); // TODO: ERROR CODES
 
             Page* new_page = append_page(curr_page, NULL);
 
@@ -837,79 +848,13 @@ int build_pages_par(int* pipefd_rs, int* pipefd_sw, int cols, int h_col, int spa
             prev_page = curr_page;
             curr_page = new_page;
 
-            // bisogna resettare questa flag, poiché la nuova pagina non avrà alcuna riga inizialmente
             h_col_reached = false;
 
             col_counter = 0;
         }
-
     }
 
-    if (curr_page == NULL) {
-        return ALLOC_ERROR;
-    }
-
-    // is_last_page = true;
-            Line* l = curr_page->lines_head;
-
-            while (l != NULL) {
-                LineChunk* lc = l->line_chunks_head;
-
-                char* joined_line = calloc(1, sizeof(char));
-                int len = 0;
-
-                while (lc != NULL) {
-                    char* new_joined_line;
-
-                    int len_backup = len;
-                    // printf("%s\n", lc->content);
-
-                    if (lc->next_line_chunk != NULL) {
-                        new_joined_line = calloc(len + strlen(lc->content) + spacing, sizeof(char));
-                        len += strlen(lc->content) + spacing;
-                    } else {
-                        new_joined_line = calloc(len + strlen(lc->content), sizeof(char));
-                        len += strlen(lc->content);
-                    }
-
-                    if (new_joined_line == NULL) {
-                        return ALLOC_ERROR;
-                    }
-
-                    memcpy(new_joined_line, joined_line, len_backup);
-
-                    strcat(new_joined_line, lc->content);
-
-                    if (lc->next_line_chunk != NULL) {
-                        for (int i = 0; i < spacing; i++) {
-                            // strcat(new_joined_line, ' '); // TODO: SPACING CHAR
-                            new_joined_line[len - spacing + i] = ' ';
-                        }
-                    }
-
-                    // free(joined_line);
-
-                    joined_line = new_joined_line;
-
-                    // printf("%s\n", joined_line);
-
-                    lc = lc->next_line_chunk;
-                }
-
-                // printf("%s\n", joined_line);
-                // TODO: ATTENZIONE CHE NON MANDO \n, CE LO DEVE METTERE IL TERZO PROCESSO (IDEM PER SEPARATORE TRA PAGINE)
-
-                len++;
-                write(pipefd_sw[1], &len, sizeof(int));
-                write(pipefd_sw[1], joined_line, len);
-                // write(pipefd_sw[1], &is_last_page, sizeof(bool));
-
-                // free(joined_line);
-
-                l = l->next_line;
-                // printf("%d\n", strlen(joined_line));
-                // free(joined_line);
-            }
+    send_page(curr_page, pipefd_sw, spacing, spacing_char); // TODO: ERROR CODES
 
     return PAGE_SUCCESS;
 }

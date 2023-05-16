@@ -70,13 +70,12 @@ TODO: spiega la struttura del programma
 
 ## TODO list
 
-- me pare che la lista sia comleta, me pare
+- gestire gli errori di read e write in pipe, e anche close 
 - controlla le cose da fare free, lettura e scrittura dovrebbero andare perfettamente, store NO
 - scrvere i commenti in testa alle funzioni
 - riscrivere parse_args
 - riscrivere il main
 - fare la/le funzione/funzioni per quello sgorbio in build_par
-- gestire l'errore possibile di close
 - gestire gli errori dei processi
 - l'help message tecnicamente non dovrebbe stare dove sta, magari prova a chiedere al prof o boh
 - capire come funzionano gli includes negli headers (?!)
