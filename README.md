@@ -70,7 +70,8 @@ TODO: spiega la struttura del programma
 
 ## TODO list
 
-- gestire gli errori di read e write in pipe, e anche close 
+- ricontrolla TUTTE le cose da commentare, che adesso è un po un macello
+- gestire gli errori di read e write in pipe, e anche close
 - controlla le cose da fare free, lettura e scrittura dovrebbero andare perfettamente, store NO
 - scrvere i commenti in testa alle funzioni
 - riscrivere parse_args

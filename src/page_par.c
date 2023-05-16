@@ -1,6 +1,18 @@
 #include "page_par.h"
 
+/*
+    La funzione prende in input una pipe, il puntatore al file di input, il numero di colonne di una pagina,
+    il numero di righe di una pagina, e la larghezza di ogni colonna di una pagina, e legge dal file di input
+    i chunk di colonne che verranno inviati al processo di creazione della struttura dati.
+
+    I commenti in questa funzione sono ridotti al minimo, poiché sarebbero una sola ripetizione dei commenti
+    che sono presenti nella funzione della versione monoprocesso
+*/
 int read_input_file_par(int* pipefd_rs, FILE* input_file, int cols, int h_col, int w_col) {
+    if (pipefd_rs == NULL || input_file == NULL) {
+        return INVALID_INPUT;
+    }
+
     int chunks_counter = 0;
     int col_counter = 0;
 
@@ -66,9 +78,12 @@ int read_input_file_par(int* pipefd_rs, FILE* input_file, int cols, int h_col, i
 
         // nella pipe viene prima inserita la lunghezza del prossimo chunk, poi il chuhk stesso,
         // ed infine il valore di 'end_value', per far sapere se la lettura del file è terminata
-        write(pipefd_rs[1], &len, sizeof(int));
-        write(pipefd_rs[1], line_chunk_content, len);
-        write(pipefd_rs[1], &end_value, sizeof(int));
+        if (write(pipefd_rs[1], &len, sizeof(int)) == -1 ||
+            write(pipefd_rs[1], line_chunk_content, len) == -1 ||
+            write(pipefd_rs[1], &end_value, sizeof(int)) == -1) {
+            free(line_chunk_content);
+            return WRITE_ERROR;
+        }
 
         free(line_chunk_content);
 
@@ -86,7 +101,6 @@ int read_input_file_par(int* pipefd_rs, FILE* input_file, int cols, int h_col, i
             col_counter = 0;
         }
 
-        // TODO: dovrei fare free? (mesa proprio de si, in caso anche sopra)
         if (fseek(input_file, curr_pos + w_col, SEEK_SET)) {
             return FSEEK_ERROR;
         }
@@ -98,37 +112,50 @@ int read_input_file_par(int* pipefd_rs, FILE* input_file, int cols, int h_col, i
 }
 
 // TODO: GESTIRE I SUOI ERORRI
-// TODO: commenta tutto
 int send_page(Page* curr_page, int* pipefd_sw, int spacing, char spacing_char) {
-    if (curr_page == NULL) {
+    if (pipefd_sw == NULL || curr_page == NULL) {
         return INVALID_INPUT;
     }
 
     Line* line = (Line*) curr_page->lines_head;
 
+    // per ognuna delle righe della pagina
     while (line != NULL) {
         LineChunk* line_chunk = (LineChunk*) line->line_chunks_head;
 
+        // viene allocato 1 byte per salvare il '\0',
+        // che verrà posto al termine della riga corrente
         char* joined_line = calloc(1, sizeof(char));
 
         if (joined_line == NULL) {
             return ALLOC_ERROR;
         }
 
+        // questa variabile rappresenta la lunghezza della *stringa* della riga,
+        // non l'effettivo numero di byte (dunque vi sarà una differenza di 1),
+        // per via del '\0' già posto in precedenza)
         int len = 0;
 
+        // per ognuno dei chunk della riga corrente
         while (line_chunk != NULL) {
-            char* content = line_chunk->content;
             char* new_joined_line;
+            char* content = line_chunk->content;
 
             int len_backup = len;
             int content_len = strlen(content);
 
+            // se il prossimo chunk non è NULL, allora il chunk corrente non è l'ultimo,
+            // e dunque è possibile inserire il separatore tra colonne della pagina
             if (line_chunk->next_line_chunk != NULL) {
+                // viene allocata una nuova stringa, avente la dimensione che la stringa
+                // aveva prima, sommata alla dimensione del chunk da inserire, ed alla spaziatura
+                // tra le colonne della pagina
                 new_joined_line = calloc(len + content_len + spacing, sizeof(char));
 
+                // alla lunghezza corrente viene aggiunta la spaziatura tra colonne
                 len += spacing;
             } else {
+                // viene solamente creato lo spazio per il chunk da inserire
                 new_joined_line = calloc(len + content_len, sizeof(char));
             }
 
@@ -137,13 +164,19 @@ int send_page(Page* curr_page, int* pipefd_sw, int spacing, char spacing_char) {
                 return ALLOC_ERROR;
             }
 
+            // alla lunghezza corrente viene aggiunta la dimensione del chunk appena inserito
             len += content_len;
 
+            // viene copiato il contenuto della riga precedente nella nuova riga, con dimensione maggiore
             memcpy(new_joined_line, joined_line, len_backup);
 
+            // viene inserito il chunk corrente al termine della nuova riga
             strcat(new_joined_line, content);
 
+            // se prossimo chunk non è NULL, allora il chunk corrente non è l'ultimo,
+            // ed è dunque necessario inserire lo spazio di separazione tra le colonne della pagina
             if (line_chunk->next_line_chunk != NULL) {
+                // TODO: non so se avevo una funzione per fare sta roba boh
                 for (int i = 0; i < spacing; i++) {
                     new_joined_line[len - spacing + i] = spacing_char;
                 }
@@ -151,6 +184,8 @@ int send_page(Page* curr_page, int* pipefd_sw, int spacing, char spacing_char) {
 
             // free(joined_line); // TODO: PER UNO DEI TEST QUESTA COSA SI ROMPE, MA INVECE ANDREBBE FATTA È IMPORTANTE
 
+            // viene rimpiazzato il puntatore della riga corrente, con il puntatore
+            // della nuova riga
             joined_line = new_joined_line;
 
             line_chunk = (LineChunk*) line_chunk->next_line_chunk;
@@ -162,13 +197,25 @@ int send_page(Page* curr_page, int* pipefd_sw, int spacing, char spacing_char) {
 
         // attraverso la pipe, viene prima mandata la lunghezza della riga che sta per
         // essere inviata, e successivamente viene mandata la riga stessa
-        write(pipefd_sw[1], &len, sizeof(int));
-        write(pipefd_sw[1], joined_line, len);
+        if (write(pipefd_sw[1], &len, sizeof(int)) == -1 ||
+            write(pipefd_sw[1], joined_line, len) == -1) {
+            free(joined_line);
+            return WRITE_ERROR;
+        }
+
+        free(joined_line);
 
         line = (Line*) line->next_line;
     }
+
+    return PAGE_SUCCESS;
 }
 
+/*
+    La funzione prende in input due pipe, il numero di colonne di una pagina, il numero di righe di una pagina,
+    il numero di caratteri, ed il carattere, di separazione tra le colonne di una pagina, ed invia al processo
+    di scrittura le righe delle pagine, non appena quest'ultime sono state completate.
+*/
 int build_pages_par(int* pipefd_rs, int* pipefd_sw, int cols, int h_col, int spacing, char spacing_char) {
     Page* curr_page = new_page(NULL);
     Page* prev_page = NULL;
@@ -245,7 +292,11 @@ int build_pages_par(int* pipefd_rs, int* pipefd_sw, int cols, int h_col, int spa
 
         if (col_counter == cols) {
             // se la pagina è stata completata, allora viene mandata al processo di scrittura
-            send_page(curr_page, pipefd_sw, spacing, spacing_char); // TODO: ERROR CODES
+            int exit_code = send_page(curr_page, pipefd_sw, spacing, spacing_char); // TODO: ERROR CODES
+
+            if (exit_code != PAGE_SUCCESS) {
+                return exit_code;
+            }
 
             Page* new_page = append_page(curr_page, NULL);
 
@@ -262,12 +313,27 @@ int build_pages_par(int* pipefd_rs, int* pipefd_sw, int cols, int h_col, int spa
         }
     }
 
-    send_page(curr_page, pipefd_sw, spacing, spacing_char); // TODO: ERROR CODES
+    // questo ulteriore invio è necessario, poiché altrimenti l'ultima pagina
+    // non sarebbe stata mandata al processo di scrittura
+    int exit_code = send_page(curr_page, pipefd_sw, spacing, spacing_char);
+
+    if (exit_code != PAGE_SUCCESS) {
+        return exit_code;
+    }
 
     return PAGE_SUCCESS;
 }
 
+/*
+    La funzione prende in input una pipe, il puntatore al file di output, il numero di righe di una pagina,
+    la dimensione dello spazio tra le colonne di ogni pagina, ed il separatore tra pagine, e stampa le righe
+    ricevute attraverso la pipe sul file di output.
+*/
 int write_output_file_par(int* pipefd_sw, FILE* output_file, int h_col, int spacing, char* pages_separator) {
+    if (pipefd_sw == NULL || output_file == NULL || !strcmp(pages_separator, "\0")) {
+        return INVALID_INPUT;
+    }
+    
     // la lunghezza della prossima riga che verrà letta nella pipe
     int len;
     int read_code = read(pipefd_sw[0], &len, sizeof(int));
@@ -283,12 +349,18 @@ int write_output_file_par(int* pipefd_sw, FILE* output_file, int h_col, int spac
     while (true) {
         char* line = calloc(len, sizeof(char));
 
+        if (line == NULL) {
+            return ALLOC_ERROR;
+        }
+
         // la prossima riga da scrivere nel file
         if (read(pipefd_sw[0], line, len) <= 0) {
             free(line);
             return READ_ERROR;
         }
 
+        // viene stampata la riga sul file (si noti che
+        // la riga ricevuta attraverso la pipe non conteneva '\n' alla fine)
         fprintf(output_file, "%s\n", line);
 
         lines_counter++;

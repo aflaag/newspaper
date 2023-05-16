@@ -350,7 +350,7 @@ int handle_truncated_string(FILE* input_file, char** line_chunk_content, int* w_
     della lista puntata.
 */
 int build_pages(FILE* input_file, Page* curr_page, int cols, int h_col, int w_col) {
-    if (curr_page == NULL) {
+    if (curr_page == NULL || input_file == NULL) {
         return ALLOC_ERROR;
     }
 
