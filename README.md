@@ -71,16 +71,13 @@ TODO: spiega la struttura del programma
 ## TODO list
 
 - ricontrolla TUTTE le cose da commentare, che adesso è un po un macello
-- gestire gli errori di read e write in pipe, e anche close
-- controlla le cose da fare free, lettura e scrittura dovrebbero andare perfettamente, store NO
-- scrvere i commenti in testa alle funzioni
+  - manca da commentare la parte che sta in page.c che era "nuova" (non ricordo come funziona)
 - riscrivere parse_args
 - riscrivere il main
-- fare la/le funzione/funzioni per quello sgorbio in build_par
 - gestire gli errori dei processi
-- l'help message tecnicamente non dovrebbe stare dove sta, magari prova a chiedere al prof o boh
-- capire come funzionano gli includes negli headers (?!)
+- fare l'help message
+  - aggiornare con la versione multiprocesso
 - fare questo readme
   - architettura
-- rimuovere la roba di debug dal main.c
+  - aggiornare con la versione multiprocesso
 - mettere la release su github
