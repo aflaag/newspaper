@@ -18,8 +18,36 @@
 #define OUTPUT_FILE_CLOSING_FAILURE -7 // restituita se non è stato possibile chiudere il file di output
 #define INVALID_INPUT_TEXT -8 // restituita se il file di input conteneva parole più larghe della larghezza di colonna specificata
 #define UNKNOWN_ERROR -9 // restituita se si sono verificati errori di natura ignota
-#define FORK_ERROR -10
-#define PIPE_ERROR -11
+#define FORK_ERROR -10 // restituita se si sono verificati errori durante il fork di un processo
+#define PIPE_ERROR -11 // restituita se si sono verificati errori durante la lettura o la scrittura con una pipe tra processi
+
+/*
+    La funzione gestisce i codici di errori che vengono restituiti
+    dalle varie funzioni del programma.
+*/
+int handle_exit_code(int exit_code) {
+    switch (exit_code)  {
+        case READ_ERROR:
+            fprintf(stderr, "An error occurred while trying to read from a pipe.\n");
+            return PIPE_ERROR;
+        case WRITE_ERROR:
+            fprintf(stderr, "An error occurred while trying to write into a pipe.\n");
+            return PIPE_ERROR;
+        case ALLOC_ERROR:
+            fprintf(stderr, "An error occurred while trying to allocate memory in the program.\n");
+            return ALLOCATION_FAILURE;
+        case INSUFFICIENT_WIDTH:
+            fprintf(stderr, "The file given as input contains words that are larger than the width provided.\n\nSee '--help' for more information\n");
+            return INVALID_INPUT_TEXT;
+        case INVALID_INPUT:
+        case FSEEK_ERROR:
+            fprintf(stderr, "An error occurred while running the program.\n");
+            return UNKNOWN_ERROR;
+        case PAGE_SUCCESS:
+        default:
+            return PROGRAM_SUCCESS; // TODO: ricontrolla che siano gestiti tutti boh
+    }
+}
 
 int main(int argc, char* argv[]) {
     int cols;
@@ -46,8 +74,8 @@ int main(int argc, char* argv[]) {
             fprintf(stderr, "0 as value is not allowed.\n\nSee '--help' for more information.\n");
             break;
         case PRINT_HELP:
-            fprintf(stderr, "%s", HELP_MESSAGE);
-            break;
+            fprintf(stderr, "%s", HELP_MESSAGE); // TODO: cambia, fai tanti print in una funzione
+            return PROGRAM_SUCCESS;
         default:
             break;
     }
@@ -56,6 +84,7 @@ int main(int argc, char* argv[]) {
         return ARGS_FAILURE;
     }
 
+    // TODO: dovrebbero aprirli solo i processi di competenza?
     FILE* input_file = fopen(input_path, "r");
 
     if (input_file == NULL) {
@@ -67,18 +96,35 @@ int main(int argc, char* argv[]) {
 
     if (output_file == NULL) {
         fprintf(stderr, "An error occurred while trying to open the output file '%s'.\n", output_path);
+
+        if (fclose(input_file)) {
+            fprintf(stderr, "An error occurred while trying to close the input file '%s'.\n", input_path);
+            return INPUT_FILE_CLOSING_FAILURE;
+        }
+
         return INVALID_OUTPUT_FILE;
     }
 
     if (!is_file_empty(output_file)) {
         fprintf(stderr, "Output file '%s' is not empty, the program will not run.\n\nSee '--help' for more information.\n", output_path);
+
+        if (fclose(input_file)) {
+            fprintf(stderr, "An error occurred while trying to close the input file '%s'.\n", input_path);
+            return INPUT_FILE_CLOSING_FAILURE;
+        }
+
+        if (fclose(output_file)) {
+            fprintf(stderr, "An error occurred while trying to closing the output file '%s'.\n", output_path);
+            return OUTPUT_FILE_CLOSING_FAILURE;
+        }
+
         return NON_EMPTY_OUTPUT_FILE;
     }
 
     int pipefd_sw[2];
 
     if (pipe(pipefd_sw) == -1) {
-        fprintf(stderr, "An error has occured while trying to setup the multiprocessing.\n");
+        fprintf(stderr, "An error has occured while trying to create a pipe.\n");
         return PIPE_ERROR;
     }
 
@@ -89,13 +135,11 @@ int main(int argc, char* argv[]) {
         return FORK_ERROR;
     }
     
-    int exit_code;
-
     if (pid == 0) {
         int pipefd_rs[2];
 
         if (pipe(pipefd_rs) == -1) {
-            fprintf(stderr, "An error has occured while trying to setup the multiprocessing.\n");
+            fprintf(stderr, "An error has occured while trying to create a pipe.\n");
             return PIPE_ERROR;
         }
 
@@ -107,94 +151,69 @@ int main(int argc, char* argv[]) {
         }
         
         if (pid == 0) {
-            close(pipefd_rs[0]);
-
-            exit_code = read_input_file_par(pipefd_rs, input_file, cols, h_col, w_col);
-
-            switch (exit_code)  {
-                case ALLOC_ERROR:
-                    fprintf(stderr, "An error occurred while trying to allocate memory in the program.\n");
-                    break;
-                case INSUFFICIENT_WIDTH:
-                    fprintf(stderr, "The file given as input contains words that are larger than the width provided.\n\nSee '--help' for more information\n");
-                    break;
-                case INVALID_INPUT:
-                case FSEEK_ERROR:
-                    fprintf(stderr, "An error occurred while running the program.\n");
-                    break;
-                case PAGE_SUCCESS:
-                    break;
-                default:
-                    break;
+            if (close(pipefd_rs[0]) == -1) {
+                fprintf(stderr, "An error occurred while trying to close a pipe.\n");
+                return PIPE_ERROR;
             }
 
+            int exit_code = read_input_file_par(pipefd_rs, input_file, cols, h_col, w_col);
+
+            exit_code = handle_exit_code(exit_code);
+
             if (fclose(input_file)) {
-                fprintf(stderr, "An error occurred while trying to closing the input file '%s'.\n", input_path);
+                fprintf(stderr, "An error occurred while trying to close the input file '%s'.\n", input_path);
                 return INPUT_FILE_CLOSING_FAILURE;
             }
 
-            close(pipefd_rs[1]);
+            if (close(pipefd_rs[1]) == -1) {
+                fprintf(stderr, "An error occurred while trying to close a pipe.\n");
+                return PIPE_ERROR;
+            }
+
+            return exit_code; // TODO: credo vada bene cosi
         } else {
-            close(pipefd_rs[1]);
-            close(pipefd_sw[0]);
+            if (close(pipefd_rs[1]) == -1 ||
+                close(pipefd_sw[0]) == -1) {
+                fprintf(stderr, "An error occurred while trying to close a pipe.\n");
+                return PIPE_ERROR;
+            }
 
             int exit_code = build_pages_par(pipefd_rs, pipefd_sw, cols, h_col, spacing, ' '); // TODO: PASSA LO SPACING CHAR
 
-            switch (exit_code)  {
-                case ALLOC_ERROR:
-                    fprintf(stderr, "An error occurred while trying to allocate memory in the program.\n");
-                    break;
-                case INSUFFICIENT_WIDTH:
-                    fprintf(stderr, "The file given as input contains words that are larger than the width provided.\n\nSee '--help' for more information\n");
-                    break;
-                case INVALID_INPUT:
-                case FSEEK_ERROR:
-                    fprintf(stderr, "An error occurred while running the program.\n");
-                    break;
-                case READ_ERROR:
-                case WRITE_ERROR:
-                    fprintf(stderr, "An error occurred while reading or writing from the pipe.\n");
-                    break;
-                case PAGE_SUCCESS:
-                    break;
-                default:
-                    break;
+            exit_code = handle_exit_code(exit_code);
+
+            if (close(pipefd_rs[0]) == -1 ||
+                close(pipefd_sw[1]) == -1) {
+                fprintf(stderr, "An error occurred while trying to close a pipe.\n");
+                return PIPE_ERROR;
             }
 
-            close(pipefd_rs[0]);
-            close(pipefd_sw[1]);
+            return exit_code; // TODO: credo vada bene cosi
         }
     } else {
-        close(pipefd_sw[1]);
+        if (close(pipefd_sw[1]) == -1) {
+            fprintf(stderr, "An error occurred while trying to close a pipe.\n");
+            return PIPE_ERROR;
+        }
         
         int exit_code = write_output_file_par(pipefd_sw, output_file, h_col, spacing, "\n%%%%%%\n\n");
 
-        switch (exit_code) {
-            // TODO: QUI
-        }
+        exit_code = handle_exit_code(exit_code);
 
         if (fclose(output_file)) {
             fprintf(stderr, "An error occurred while trying to closing the output file '%s'.\n", output_path);
             return OUTPUT_FILE_CLOSING_FAILURE;
         }
 
-        close(pipefd_sw[0]);
+        if (close(pipefd_sw[0]) == -1) {
+            fprintf(stderr, "An error occurred while trying to close a pipe.\n");
+            return PIPE_ERROR;
+        }
+
+        return exit_code;
     }
 
-    // TODO: questi misa che vanno pensati bene
-    switch (exit_code)  {
-        case ALLOC_ERROR:
-            return ALLOCATION_FAILURE;
-        case INSUFFICIENT_WIDTH:
-            return INVALID_INPUT_TEXT;
-        case INVALID_INPUT:
-        case FSEEK_ERROR:
-            return UNKNOWN_ERROR;
-        case PAGE_SUCCESS:
-            break;
-        default:
-            break;
-    }
+    // TODO: qua in qualche modo dovrei prendere i risultati dei processi figli boh non lo so, o forse no
 
     return PROGRAM_SUCCESS;
 }

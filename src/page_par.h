@@ -1,3 +1,5 @@
+#include <unistd.h>
+
 #include "page.h"
 
 #define READ_ERROR -5 // restituita se si è verificato un errore durante la lettura da una pipe
