@@ -6,7 +6,7 @@
     i chunk di colonne che verranno inviati al processo di creazione della struttura dati.
 
     I commenti in questa funzione sono ridotti al minimo, poiché sarebbero una sola ripetizione dei commenti
-    che sono presenti nella funzione della versione monoprocesso
+    che sono presenti nella funzione della versione monoprocesso.
 */
 int read_input_file_par(int* pipefd_rs, FILE* input_file, int cols, int h_col, int w_col) {
     if (pipefd_rs == NULL || input_file == NULL) {
@@ -215,6 +215,9 @@ int send_page(Page* curr_page, int* pipefd_sw, int spacing, char spacing_char) {
     La funzione prende in input due pipe, il numero di colonne di una pagina, il numero di righe di una pagina,
     il numero di caratteri, ed il carattere, di separazione tra le colonne di una pagina, ed invia al processo
     di scrittura le righe delle pagine, non appena quest'ultime sono state completate.
+
+    I commenti in questa funzione sono ridotti al minimo, poiché sarebbero una sola ripetizione dei commenti
+    che sono presenti nella funzione della versione monoprocesso.
 */
 int build_pages_par(int* pipefd_rs, int* pipefd_sw, int cols, int h_col, int spacing, char spacing_char) {
     Page* curr_page = new_page(NULL);
@@ -328,6 +331,9 @@ int build_pages_par(int* pipefd_rs, int* pipefd_sw, int cols, int h_col, int spa
     La funzione prende in input una pipe, il puntatore al file di output, il numero di righe di una pagina,
     la dimensione dello spazio tra le colonne di ogni pagina, ed il separatore tra pagine, e stampa le righe
     ricevute attraverso la pipe sul file di output.
+
+    I commenti in questa funzione sono ridotti al minimo, poiché sarebbero una sola ripetizione dei commenti
+    che sono presenti nella funzione della versione monoprocesso.
 */
 int write_output_file_par(int* pipefd_sw, FILE* output_file, int h_col, int spacing, char* pages_separator) {
     if (pipefd_sw == NULL || output_file == NULL || !strcmp(pages_separator, "\0")) {
