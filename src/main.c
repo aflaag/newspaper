@@ -49,41 +49,18 @@ int handle_exit_code(int exit_code) {
     }
 }
 
-int main(int argc, char* argv[]) {
-    int cols;
-    int h_col;
-    int w_col;
-    int spacing;
-    
-    char* input_path;
-    char* output_path;
-    
-    // TODO: cambiare questo, deve accattare in input anche la flag per il multiprocesso,
-    // e vanno fatte 2 funzioni qui nel main, in cui una runna il programma mono processo,
-    // e l'altra multi processo
-    int args_err = parse_args(argc, argv, &input_path, &output_path, &cols, &h_col, &w_col, &spacing);
+/*
+    La funzione esegue il programma con la versione mono-processo.
+*/
+int non_par_main(char* input_path, char* output_path, int cols, int h_col, int w_col, int spacing) {
+    printf("TODO eheh\n"); // TODO: rubalo dal github dei commit vecchi
+    return PROGRAM_SUCCESS;
+}
 
-    switch (args_err) {
-        case NOT_ENOUGH_ARGS:
-            fprintf(stderr, "Not enough argument passed, 6 arguments expected.\n\nSee '--help' for more information.\n");
-            break;
-        case CHARS_IN_NUMERIC_ARG:
-            fprintf(stderr, "The last 4 arguments are expected to be strictly positive integers, but non-digits characters where found.\n\nSee '--help' for more information.\n");
-            break;
-        case ZERO_INTEGER:
-            fprintf(stderr, "0 as value is not allowed.\n\nSee '--help' for more information.\n");
-            break;
-        case PRINT_HELP:
-            fprintf(stderr, "%s", HELP_MESSAGE); // TODO: cambia, fai tanti print in una funzione
-            return PROGRAM_SUCCESS;
-        default:
-            break;
-    }
-    
-    if (args_err != ARGS_SUCCESS) {
-        return ARGS_FAILURE;
-    }
-
+/*
+    La funzione esegue il programma con la versione multi-processo.
+*/
+int par_main(char* input_path, char* output_path, int cols, int h_col, int w_col, int spacing) {
     int pipefd_sw[2];
 
     if (pipe(pipefd_sw) == -1) {
@@ -205,4 +182,40 @@ int main(int argc, char* argv[]) {
     // TODO: qua in qualche modo dovrei prendere i risultati dei processi figli boh non lo so, o forse no
 
     return PROGRAM_SUCCESS;
+}
+
+int main(int argc, char* argv[]) {
+    int cols;
+    int h_col;
+    int w_col;
+    int spacing;
+    
+    char* input_path;
+    char* output_path;
+    
+    int args_err = parse_args(argc, argv, &input_path, &output_path, &cols, &h_col, &w_col, &spacing);
+
+    switch (args_err) {
+        case NOT_ENOUGH_ARGS:
+            fprintf(stderr, "Not enough arguments passed, 6 arguments expected.\n\nSee '--help' for more information.\n");
+            break;
+        case CHARS_IN_NUMERIC_ARG:
+            fprintf(stderr, "The last 4 arguments are expected to be strictly positive integers, but non-digits characters where found.\n\nSee '--help' for more information.\n");
+            break;
+        case ZERO_INTEGER:
+            fprintf(stderr, "0 as value is not allowed.\n\nSee '--help' for more information.\n");
+            break;
+        case TOO_MANY_ARGS:
+            fprintf(stderr, "Too many arguments passed, 6 arguments expected.\n\nSee '--help' for more information.\n");
+            break;
+        case PRINT_HELP:
+            fprintf(stderr, "%s", HELP_MESSAGE); // TODO: aggiorna per la par flag
+            return PROGRAM_SUCCESS;
+        case ARGS_SUCCESS:
+            return non_par_main(input_path, output_path, cols, h_col, w_col, spacing);
+        case ARGS_SUCCESS_PAR:
+            return par_main(input_path, output_path, cols, h_col, w_col, spacing);
+        default:
+            break;
+    }
 }
