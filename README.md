@@ -72,11 +72,7 @@ TODO: spiega la struttura del programma
 
 - ricontrolla TUTTE le cose da commentare, che adesso è un po un macello
   - manca da commentare la parte che sta in page.c che era "nuova" (non ricordo come funziona)
-- riscrivere parse_args
-- riscrivere il main
 - gestire gli errori dei processi
-- fare l'help message
-  - aggiornare con la versione multiprocesso
 - fare questo readme
   - architettura
   - aggiornare con la versione multiprocesso
