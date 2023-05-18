@@ -2,13 +2,7 @@
 
 Il programma prende in input un file di testo, e produce un file di output contenente il testo del file di input, incolonnato come una pagina di giornale, secondo le misure definite dall'utente.
 
-Esempio:
-
-```sh
-newspaper sample_inputs/example_in.txt 3 5 15 5
-```
-
-produce il file contenuto in `expected_outputs/example_out.txt`, ovvero:
+Ad esempio, è possibile impaginare il testo contenuto in `sample_inputs/example_in.txt`, come riportato in `expected_outputs/example_out.txt`, ovvero:
 
 ```text
 Come   si   può     perfettamente       specificati    
@@ -50,7 +44,17 @@ make
 
 ## Uso
 
-Per usare il programma, seguire le indicazioni fornite da
+Di seguito è riportato il comando che è stato eseguito per compilare la demo mostrata precedentemente:
+
+```sh
+newspaper --par sample_inputs/example_in.txt output.txt 3 5 15 5
+```
+
+eseguendo questo comando, il testo impaginato verrà inserito in un file chiamato `output.txt`.
+
+Il programma può essere eseguito con un solo processo (comportamento di default), oppure attraverso la versione multi-processo, attivando la flag `--par` (o `-p`).
+
+Per maggiori informazioni, consultare il comando
 
 ```sh
 newspaper --help
@@ -70,10 +74,10 @@ TODO: spiega la struttura del programma
 
 ## TODO list
 
+- fixare il bug del free in page_par.c
 - ricontrolla TUTTE le cose da commentare, che adesso è un po un macello
   - manca da commentare la parte che sta in page.c che era "nuova" (non ricordo come funziona)
 - gestire gli errori dei processi
 - fare questo readme
   - architettura
-  - aggiornare con la versione multiprocesso
 - mettere la release su github

@@ -111,9 +111,13 @@ int read_input_file_par(int* pipefd_rs, FILE* input_file, int cols, int h_col, i
     return PAGE_SUCCESS;
 }
 
-// TODO: GESTIRE I SUOI ERORRI
+/*
+    La funzione prende in input il puntatore alla pagina corrente, una pipe, il numero di caratteri di spazio tra
+    due colonne di una pagina, e il carattere di separazione tra le colonne di pagina, e manda riga per riga al processo
+    di scrittura la pagina da stampare, contenente anche gli spazi tra le colonne costruite.
+*/
 int send_page(Page* curr_page, int* pipefd_sw, int spacing, char spacing_char) {
-    if (pipefd_sw == NULL || curr_page == NULL) {
+    if (pipefd_sw == NULL || curr_page == NULL || spacing_char == '\0' || spacing == 0) {
         return INVALID_INPUT;
     }
 
@@ -176,12 +180,12 @@ int send_page(Page* curr_page, int* pipefd_sw, int spacing, char spacing_char) {
             // se prossimo chunk non è NULL, allora il chunk corrente non è l'ultimo,
             // ed è dunque necessario inserire lo spazio di separazione tra le colonne della pagina
             if (line_chunk->next_line_chunk != NULL) {
-                // TODO: non so se avevo una funzione per fare sta roba boh
                 for (int i = 0; i < spacing; i++) {
                     new_joined_line[len - spacing + i] = spacing_char;
                 }
             }
 
+            // printf("boh: %s | %s | %d | %d\n", joined_line, new_joined_line, joined_line, new_joined_line);
             // free(joined_line); // TODO: PER UNO DEI TEST QUESTA COSA SI ROMPE, MA INVECE ANDREBBE FATTA È IMPORTANTE
 
             // viene rimpiazzato il puntatore della riga corrente, con il puntatore
@@ -297,15 +301,18 @@ int build_pages_par(int* pipefd_rs, int* pipefd_sw, int cols, int h_col, int spa
 
         if (col_counter == cols) {
             // se la pagina è stata completata, allora viene mandata al processo di scrittura
-            int exit_code = send_page(curr_page, pipefd_sw, spacing, spacing_char); // TODO: ERROR CODES
+            int exit_code = send_page(curr_page, pipefd_sw, spacing, spacing_char);
 
             if (exit_code != PAGE_SUCCESS) {
+                free(prev_page);
+                free(curr_page);
                 return exit_code;
             }
 
             Page* new_page = append_page(curr_page, NULL);
 
             if (new_page == NULL) {
+                free(prev_page);
                 free(curr_page);
                 return ALLOC_ERROR;
             }
@@ -325,11 +332,11 @@ int build_pages_par(int* pipefd_rs, int* pipefd_sw, int cols, int h_col, int spa
     // non sarebbe stata mandata al processo di scrittura
     int exit_code = send_page(curr_page, pipefd_sw, spacing, spacing_char);
 
+    free(curr_page);
+
     if (exit_code != PAGE_SUCCESS) {
         return exit_code;
     }
-
-    free(curr_page);
 
     return PAGE_SUCCESS;
 }

@@ -172,7 +172,7 @@ int read_chunk(FILE* input_file, char** line_chunk_content, int* w_col, long* ba
 
         if (curr_char == '\n' && (!is_first_line_first_col || is_first_line_first_col && is_text_started)) {
             fseek(input_file, next_pos, SEEK_SET);
-            // TODO: ATTENTO CHE DOVREBBE ESSERE IL NEXT MESA
+            // TODO: FAI COMMENTI QUA INTORNO (guarda il commit per vedere dove commentare)
             int k = 0; 
 
             while (curr_char == '\n' || curr_char == '\t' || curr_char == '\r' || curr_char == ' ') {

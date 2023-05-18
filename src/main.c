@@ -86,7 +86,9 @@ int non_par_main(char* input_path, char* output_path, int cols, int h_col, int w
         return INPUT_FILE_CLOSING_FAILURE;
     }
 
-    if (handle_exit_code(exit_code) != PROGRAM_SUCCESS) {
+    exit_code = handle_exit_code(exit_code);
+    
+    if (exit_code != PROGRAM_SUCCESS) {
         free_pages(pages);
 
         return exit_code;
@@ -256,7 +258,7 @@ int main(int argc, char* argv[]) {
             fprintf(stderr, "Too many arguments passed, 6 arguments expected.\n\nSee '--help' for more information.\n");
             break;
         case PRINT_HELP:
-            fprintf(stderr, "%s", HELP_MESSAGE); // TODO: aggiorna per la par flag
+            fprintf(stderr, "%s", HELP_MESSAGE);
             return PROGRAM_SUCCESS;
         case ARGS_SUCCESS:
             return non_par_main(input_path, output_path, cols, h_col, w_col, spacing);
@@ -265,4 +267,6 @@ int main(int argc, char* argv[]) {
         default:
             break;
     }
+
+    return ARGS_FAILURE;
 }
