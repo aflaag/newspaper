@@ -70,7 +70,6 @@ TODO: spiega la struttura del programma
 
 ## TODO list
 
-- NON LIBERI LE PAGINE
 - ricontrolla TUTTE le cose da commentare, che adesso è un po un macello
   - manca da commentare la parte che sta in page.c che era "nuova" (non ricordo come funziona)
 - gestire gli errori dei processi

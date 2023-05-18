@@ -39,13 +39,13 @@ int handle_exit_code(int exit_code) {
         case INSUFFICIENT_WIDTH:
             fprintf(stderr, "The file given as input contains words that are larger than the width provided.\n\nSee '--help' for more information\n");
             return INVALID_INPUT_TEXT;
+        case PAGE_SUCCESS:
+            return PROGRAM_SUCCESS;
         case INVALID_INPUT:
         case FSEEK_ERROR:
+        default:
             fprintf(stderr, "An error occurred while running the program.\n");
             return UNKNOWN_ERROR;
-        case PAGE_SUCCESS:
-        default:
-            return PROGRAM_SUCCESS; // TODO: ricontrolla che siano gestiti tutti boh
     }
 }
 
@@ -86,23 +86,13 @@ int non_par_main(char* input_path, char* output_path, int cols, int h_col, int w
         return INPUT_FILE_CLOSING_FAILURE;
     }
 
-    switch (exit_code)  {
-        case ALLOC_ERROR:
-            fprintf(stderr, "An error occurred while trying to allocate memory in the program.\n");
-            break;
-        case INSUFFICIENT_WIDTH:
-            fprintf(stderr, "The file given as input contains words that are larger than the width provided.\n\nSee '--help' for more information\n");
-            break;
-        case INVALID_INPUT:
-        case FSEEK_ERROR:
-            fprintf(stderr, "An error occurred while running the program.\n");
-            break;
-        case PAGE_SUCCESS:
-            print_pages(output_file, pages, spacing, "\n%%%\n\n", ' ');
-            break;
-        default:
-            break;
+    if (handle_exit_code(exit_code) != PROGRAM_SUCCESS) {
+        free_pages(pages);
+
+        return exit_code;
     }
+
+    print_pages(output_file, pages, spacing, "\n%%%\n\n", ' ');
 
     free_pages(pages);
 
@@ -111,21 +101,7 @@ int non_par_main(char* input_path, char* output_path, int cols, int h_col, int w
         return OUTPUT_FILE_CLOSING_FAILURE;
     }
 
-    switch (exit_code)  {
-        case ALLOC_ERROR:
-            return ALLOCATION_FAILURE;
-        case INSUFFICIENT_WIDTH:
-            return INVALID_INPUT_TEXT;
-        case INVALID_INPUT:
-        case FSEEK_ERROR:
-            return UNKNOWN_ERROR;
-        case PAGE_SUCCESS:
-            break;
-        default:
-            break;
-    }
-
-    return PROGRAM_SUCCESS;
+    return exit_code;
 }
 
 /*

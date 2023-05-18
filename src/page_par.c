@@ -263,6 +263,7 @@ int build_pages_par(int* pipefd_rs, int* pipefd_sw, int cols, int h_col, int spa
         if (!h_col_reached) {
             if (append_line_and_advance(&curr_page, NULL) == NULL) {
                 free(line_chunk_content);
+                free(curr_page);
                 return ALLOC_ERROR;
             }
 
@@ -271,6 +272,7 @@ int build_pages_par(int* pipefd_rs, int* pipefd_sw, int cols, int h_col, int spa
 
         if (append_line_chunk_and_advance((Line**) &curr_page->curr_line, line_chunk_content) == NULL) {
             free(line_chunk_content);
+            free(curr_page);
             return ALLOC_ERROR;
         }
 
@@ -304,8 +306,11 @@ int build_pages_par(int* pipefd_rs, int* pipefd_sw, int cols, int h_col, int spa
             Page* new_page = append_page(curr_page, NULL);
 
             if (new_page == NULL) {
+                free(curr_page);
                 return ALLOC_ERROR;
             }
+
+            free(prev_page);
 
             prev_page = curr_page;
             curr_page = new_page;
@@ -323,6 +328,8 @@ int build_pages_par(int* pipefd_rs, int* pipefd_sw, int cols, int h_col, int spa
     if (exit_code != PAGE_SUCCESS) {
         return exit_code;
     }
+
+    free(curr_page);
 
     return PAGE_SUCCESS;
 }
