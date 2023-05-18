@@ -53,7 +53,78 @@ int handle_exit_code(int exit_code) {
     La funzione esegue il programma con la versione mono-processo.
 */
 int non_par_main(char* input_path, char* output_path, int cols, int h_col, int w_col, int spacing) {
-    printf("TODO eheh\n"); // TODO: rubalo dal github dei commit vecchi
+    Page* pages = new_page(NULL);
+
+    if (pages == NULL) {
+        fprintf(stderr, "An error occurred while trying to allocate memory in the program.\n");
+        return ALLOCATION_FAILURE;
+    }
+
+    FILE* input_file = fopen(input_path, "r");
+
+    if (input_file == NULL) {
+        fprintf(stderr, "An error occurred while trying to open the input file '%s'.\n", input_path);
+        return INVALID_INPUT_FILE;
+    }
+
+    FILE* output_file = fopen(output_path, "a");
+
+    if (output_file == NULL) {
+        fprintf(stderr, "An error occurred while trying to open the output file '%s'.\n", output_path);
+        return INVALID_OUTPUT_FILE;
+    }
+
+    if (!is_file_empty(output_file)) {
+        fprintf(stderr, "Output file '%s' is not empty, the program will not run.\n\nSee '--help' for more information.\n", output_path);
+        return NON_EMPTY_OUTPUT_FILE;
+    }
+
+    int exit_code = build_pages(input_file, pages, cols, h_col, w_col);
+
+    if (fclose(input_file)) {
+        fprintf(stderr, "An error occurred while trying to closing the input file '%s'.\n", input_path);
+        return INPUT_FILE_CLOSING_FAILURE;
+    }
+
+    switch (exit_code)  {
+        case ALLOC_ERROR:
+            fprintf(stderr, "An error occurred while trying to allocate memory in the program.\n");
+            break;
+        case INSUFFICIENT_WIDTH:
+            fprintf(stderr, "The file given as input contains words that are larger than the width provided.\n\nSee '--help' for more information\n");
+            break;
+        case INVALID_INPUT:
+        case FSEEK_ERROR:
+            fprintf(stderr, "An error occurred while running the program.\n");
+            break;
+        case PAGE_SUCCESS:
+            print_pages(output_file, pages, spacing, "\n%%%\n\n", ' ');
+            break;
+        default:
+            break;
+    }
+
+    free_pages(pages);
+
+    if (fclose(output_file)) {
+        fprintf(stderr, "An error occurred while trying to closing the output file '%s'.\n", output_path);
+        return OUTPUT_FILE_CLOSING_FAILURE;
+    }
+
+    switch (exit_code)  {
+        case ALLOC_ERROR:
+            return ALLOCATION_FAILURE;
+        case INSUFFICIENT_WIDTH:
+            return INVALID_INPUT_TEXT;
+        case INVALID_INPUT:
+        case FSEEK_ERROR:
+            return UNKNOWN_ERROR;
+        case PAGE_SUCCESS:
+            break;
+        default:
+            break;
+    }
+
     return PROGRAM_SUCCESS;
 }
 
