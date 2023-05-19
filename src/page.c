@@ -131,8 +131,10 @@ void print_pages(FILE* output_file, Page* page, int spacing, char* pages_separat
     da riempire con il chunk che verrà letto, la larghezza della colonna (che potrebbe variare
     in base al chunk letto), il puntatore alla posizione corrente nel file
     (che potrebbe variare in base al chunk letto), e il puntatore al numero di caratteri unicode
-    incontrati all'interno del chunk (che potrebbe variare in base al chunk letto). La funzione
-    non effettua controlli sulla correttezza di 'w_col', 'base_idx' e 'unicode_offset'.
+    incontrati all'interno del chunk (che potrebbe variare in base al chunk letto); infine, la funzione
+    prende in input un valore booleano, per sapere se il chunk che si sta per leggere è il primo
+    della prima colonna della paigna corrente, al fine di gestire correttamente alcuni casi particolari.
+    La funzione non effettua controlli sulla correttezza di 'w_col', 'base_idx' e 'unicode_offset'.
 */
 int read_chunk(FILE* input_file, char** line_chunk_content, int* w_col, long* base_idx, int* unicode_offset, bool is_first_line_first_col) {
     if (input_file == NULL || line_chunk_content == NULL || *line_chunk_content == NULL) {
@@ -170,36 +172,41 @@ int read_chunk(FILE* input_file, char** line_chunk_content, int* w_col, long* ba
 
         char next_char = fgetc(input_file);
 
+        // i paragrafi sono contraddistinti da un singolo '\n', dunque ogni volta che ne viene letto uno, è
+        // necessario inizalizzare la procedura di riconoscimento del paragrafo; si noti che bisogna anche
+        // controllare che non ci si trovi sul primo carattere della prima colonna della pagina corrente,
+        // altrimenti TODO: non so a che serve
         if (curr_char == '\n' && (!is_first_line_first_col || is_first_line_first_col && is_text_started)) {
+            // si noti che va letto il carattere in next_pos, altrimenti si
+            // salterebbe un carattere, letto da fgetc in next_char
             fseek(input_file, next_pos, SEEK_SET);
-            // TODO: FAI COMMENTI QUA INTORNO (guarda il commit per vedere dove commentare)
-            int k = 0; 
 
+            int ignored = 0; 
+
+            // fintanto il carattere corrente continua ad essere uno dei seguenti, il ciclo continua
+            // ad ignorarlo, per evitare che vengano creati multipli paragrafi a seguito
+            // di combinazioni ripetute di caratteri di spaziatura
             while (curr_char == '\n' || curr_char == '\t' || curr_char == '\r' || curr_char == ' ') {
                 curr_char = fgetc(input_file);
 
+                // se durante la lettura il testo termina, allora bisogna terminare la lettura
                 if (curr_char == EOF || curr_char == '\0') {
-                    (*line_chunk_content)[j - invalid_offset] = '\0';
-
                     return ENDED_TEXT;
                 }
 
-                k++;
+                ignored++;
             }
 
+            // viene riempita la parte finale della stringa con spazi, per completare il chunk
             pad_string(*line_chunk_content, j - invalid_offset, *w_col + *unicode_offset, ' ');
 
             // base_idx è il puntatore alla posizione con cui si è iniziato a leggere
             // il chunk corrente, e deve essere aggiornato oppurtunamente per non
             // ignorare i caratteri che non sono stati inseriti nel buffer, poiché al loro
-            // posto vi sono stati inseriti degli spazi; si noti che la formula vede un + 2
-            // al suo interno, poichè vanno saltati i due '\n' letti come indicatore
-            // di fine paragrafo, altrimenti si andrebbe in loop infinito
-            *base_idx += j - (*w_col + invalid_offset + *unicode_offset) + k;
-
-            if (exit_code == ENDED_TEXT) {
-                return exit_code;
-            }
+            // posto vi sono stati inseriti degli spazi, ed allo stesso tempo ignorare i caratteri
+            // che sono stati ignorati durante il ciclo precedente, altrimenti verrebbero
+            // generati molteplici paragrafi alla lettura successiva
+            *base_idx += j - (*w_col + invalid_offset + *unicode_offset) + ignored;
 
             // si noti che con questo algoritmo si presenta un caso particolare nel momento
             // in cui la riga dell'ultimo paragrafo termina proprio sull'ultimo carattere disponibile
@@ -209,8 +216,6 @@ int read_chunk(FILE* input_file, char** line_chunk_content, int* w_col, long* ba
             // ogni suo carattere con ' ', è sufficiente controllare che l'attuale primo carattere
             // del chunk non sia uno spazio, per gestire questo caso particolare
             exit_code = (*line_chunk_content)[0] != ' ' ? ENDED_PARAGRAPH : NOT_ENDED_TEXT;
-            // exit_code = ENDED_PARAGRAPH;
-            
             break;
         }
         
@@ -460,6 +465,7 @@ int build_pages(FILE* input_file, Page* curr_page, int cols, int h_col, int w_co
             // non verrà inserito nella struttura dati, quindi va liberata la sua memoria
             free(line_chunk_content);
 
+            // TODO: commenta sta roba (e controlla cos'altro da commentare nel commit)
             if (col_counter == 0 && chunks_counter % h_col == 0 && prev_page != NULL) {
                 free(curr_page);
 

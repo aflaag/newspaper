@@ -116,11 +116,11 @@ int read_input_file_par(int* pipefd_rs, FILE* input_file, int cols, int h_col, i
 }
 
 /*
-    La funzione prende in input il puntatore alla pagina corrente, una pipe, il numero di caratteri di spazio tra
-    due colonne di una pagina, e il carattere di separazione tra le colonne di pagina, e manda riga per riga al processo
-    di scrittura la pagina da stampare, contenente anche gli spazi tra le colonne costruite.
+    La funzione prende in input il puntatore alla pagina corrente, tutte le informazioni che definiscono
+    la struttura di una pagina, ed il carattere di separazione tra le colonne di pagina,
+    e manda la pagina fornita in input, riga per riga, al processo di scrittura; le righe mandate
+    contengono anche gli spazi tra le colonne costruite, ma non contengono il \n alla fine.
 */
-// TODO: I COMMENTI SONO DA RISCRIVERE DELLA VERSIONE CORRENTE
 int send_page(Page* curr_page, int* pipefd_sw, int cols, int w_col, int spacing, char spacing_char) {
     if (pipefd_sw == NULL || curr_page == NULL || spacing_char == '\0' || cols == 0 || w_col == 0 || spacing == 0) {
         return INVALID_INPUT;
@@ -132,8 +132,10 @@ int send_page(Page* curr_page, int* pipefd_sw, int cols, int w_col, int spacing,
     while (line != NULL) {
         LineChunk* line_chunk = (LineChunk*) line->line_chunks_head;
 
-        // viene allocato 1 byte per salvare il '\0',
-        // che verrà posto al termine della riga corrente
+        // la dimensione massima che una riga può avere è la seguente, poiché un carattere multibyte UTF-8
+        // non può essere composto da più di 4 byte, e dunque 4 * w_col * cols è il numero di caratteri non spazi,
+        // mentre gli spazi saranno spacing * (cols - 1), e sviluppando i calcoli si ottiene la formula seguente;
+        // si noti che è necessario aggiungere + 1 per '\0' alla fine (che non è necessario inserire usando calloc)
         int len = (4 * w_col + spacing) * cols - spacing + 1;
 
         char* joined_line = calloc(len, sizeof(char));
@@ -144,23 +146,24 @@ int send_page(Page* curr_page, int* pipefd_sw, int cols, int w_col, int spacing,
 
         int i = 0;
 
-        // TODO: QUESTO METODO FUNZIONA SOLO SE FPRINTF SI FERMA QUANDO CIOCCA \0 (SPERO DE SI)
         while (true) {
-            // TODO: salva il content qua
+            char* line_chunk_content = line_chunk->content;
 
-            if (line_chunk->content == NULL) { // TODO:controlla che non dia errori
+            if (line_chunk_content == NULL) {
                 free(joined_line);
                 return ALLOC_ERROR;
             }
             
-            strcat(joined_line, line_chunk->content);
+            // il contenuto del chunk corrente viene riposto nel buffer creato
+            strcat(joined_line, line_chunk_content);
 
-            i += strlen(line_chunk->content);
+            i += strlen(line_chunk_content);
 
             if (line_chunk->next_line_chunk == NULL) {
                 break;
             }
 
+            // vengono aggiunti i caratteri di spaziatura tra le colonne
             for (int j = i; j < i + spacing; j++) {
                 joined_line[j] = spacing_char;
             }

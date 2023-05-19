@@ -7,7 +7,7 @@ Ad esempio, è possibile impaginare il testo contenuto in `sample_inputs/example
 ```text
 Come   si   può     perfettamente       specificati    
 vedere              incolonnato   e     dall'utente:   
-all'interno  di     giustificato         infatti     per
+all'interno  di     giustificato        infatti     per
 questo esempio,     secondo       i     produrre questo
 il  testo viene     parametri           output  è stato
 
@@ -24,7 +24,7 @@ per colonna, 15     una  colonna  e     Si noti inoltre
 come         il     UTF-8,        e     originale,     
 programma  è in     mantiene     la     inserendo   tra
 grado        di     separazione  in     questi una riga
-gestire             paragrafi   del      vuota        di
+gestire             paragrafi   del     vuota        di
 caratteri           testo               separazione. 😃
 ```
 
@@ -74,10 +74,11 @@ TODO: spiega la struttura del programma
 
 ## TODO list
 
-- credo i free abbiano qualcosa che non va nella versione multiprocesso
-- fixare il bug del free in page_par.c
+- considera di mettere i file in cartelle
+  - in caso, riscrivere il makefile
 - ricontrolla TUTTE le cose da commentare, che adesso è un po un macello
-  - manca da commentare la parte che sta in page.c che era "nuova" (non ricordo come funziona)
+  - finire di commentare la funzione di lettura del chunk in page.c (la parte nel TODO, non ricordo che cosa faccia quel pezzo di codice)
+  - finire di commentare la funzione principale in page.c
 - gestire gli errori dei processi
 - fare questo readme
   - architettura
