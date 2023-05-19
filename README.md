@@ -28,6 +28,8 @@ gestire             paragrafi   del     vuota        di
 caratteri           testo               separazione. 😃
 ```
 
+Si noti che nell'esempio qui riportato alcune delle colonne potrebbero sembrare non allineate, poiché alcuni browser usano le "_ligatures_" per renderizzare il testo, ed alcuni gruppi di caratteri vengono uniti in uno solo, ad esempio `f` e `i` in `ﬁ`; per visualizzare il testo incolonnato correttamente, è necessario disporre di un visualizzatore di testo monospace, che non usi le _ligatures_.
+
 ## Compilazione
 
 Per compilare il programma, dopo aver scaricato la repository con
