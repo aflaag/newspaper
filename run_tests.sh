@@ -43,6 +43,7 @@ run_test sample_inputs/makefile_in.txt expected_outputs/makefile_out.txt 3 8 16 
 run_test sample_inputs/example_in.txt expected_outputs/example_out.txt 3 5 15 5 false
 run_test sample_inputs/example2_in.txt expected_outputs/example2_out.txt 3 5 15 5 false
 run_test sample_inputs/example3_in.txt expected_outputs/example3_out.txt 3 5 15 5 false
+run_test sample_inputs/ionut_in.txt expected_outputs/ionut_out.txt 3 40 60 10 false
 
 # parallel-tests
 run_test sample_inputs/utf8_prof_in.txt expected_outputs/utf8_prof_out.txt 3 40 21 10 true
@@ -58,5 +59,6 @@ run_test sample_inputs/makefile_in.txt expected_outputs/makefile_out.txt 3 8 16 
 run_test sample_inputs/example_in.txt expected_outputs/example_out.txt 3 5 15 5 true
 run_test sample_inputs/example2_in.txt expected_outputs/example2_out.txt 3 5 15 5 true
 run_test sample_inputs/example3_in.txt expected_outputs/example3_out.txt 3 5 15 5 true
+run_test sample_inputs/ionut_in.txt expected_outputs/ionut_out.txt 3 40 60 10 true
 
 printf "\n[$PASSED_TESTS/$TOTAL_TESTS] tests passed.\n"

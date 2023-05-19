@@ -23,6 +23,10 @@ int read_input_file_par(int* pipefd_rs, FILE* input_file, int cols, int h_col, i
 
         char* line_chunk_content = calloc(w_col + 1, sizeof(char));
 
+        if (line_chunk_content == NULL) {
+            return ALLOC_ERROR;
+        }
+
         int unicode_offset = 0;
         int end_value = NOT_ENDED_TEXT;
 

@@ -74,6 +74,7 @@ TODO: spiega la struttura del programma
 
 ## TODO list
 
+- credo i free abbiano qualcosa che non va nella versione multiprocesso
 - fixare il bug del free in page_par.c
 - ricontrolla TUTTE le cose da commentare, che adesso è un po un macello
   - manca da commentare la parte che sta in page.c che era "nuova" (non ricordo come funziona)

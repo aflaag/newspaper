@@ -377,6 +377,10 @@ int build_pages(FILE* input_file, Page* curr_page, int cols, int h_col, int w_co
         // spazio per il prossimo chunk da leggere (più il null byte)
         char* line_chunk_content = calloc(w_col + 1, sizeof(char));
 
+        if (line_chunk_content == NULL) {
+            return ALLOC_ERROR;
+        }
+
         // il numero di caratteri unicode che verranno incontrati all'interno
         // del chunk che verrà letto
         int unicode_offset = 0;
