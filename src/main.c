@@ -174,7 +174,7 @@ int par_main(char* input_path, char* output_path, int cols, int h_col, int w_col
                 return PIPE_ERROR;
             }
 
-            int exit_code = build_pages_par(pipefd_rs, pipefd_sw, cols, h_col, spacing, ' ');
+            int exit_code = build_pages_par(pipefd_rs, pipefd_sw, cols, h_col, w_col, spacing, ' ');
 
             exit_code = handle_exit_code(exit_code);
 
@@ -242,7 +242,17 @@ int main(int argc, char* argv[]) {
     char* input_path;
     char* output_path;
     
-    int args_err = parse_args(argc, argv, &input_path, &output_path, &cols, &h_col, &w_col, &spacing);
+    // bool debug = true;
+    bool debug = false;
+
+    int args_err = ARGS_SUCCESS_PAR;
+    cols = 3; h_col = 7; w_col = 15; spacing = 1;
+    input_path = "/home/aless/Desktop/codes/misc/c/newspaper/sample_inputs/capo_in.txt";
+    output_path = "/home/aless/Desktop/codes/misc/c/newspaper/output.txt";
+
+    if (!debug) {
+        args_err = parse_args(argc, argv, &input_path, &output_path, &cols, &h_col, &w_col, &spacing);
+    }
 
     switch (args_err) {
         case NOT_ENOUGH_ARGS:

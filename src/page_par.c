@@ -120,8 +120,9 @@ int read_input_file_par(int* pipefd_rs, FILE* input_file, int cols, int h_col, i
     due colonne di una pagina, e il carattere di separazione tra le colonne di pagina, e manda riga per riga al processo
     di scrittura la pagina da stampare, contenente anche gli spazi tra le colonne costruite.
 */
-int send_page(Page* curr_page, int* pipefd_sw, int spacing, char spacing_char) {
-    if (pipefd_sw == NULL || curr_page == NULL || spacing_char == '\0' || spacing == 0) {
+// TODO: I COMMENTI SONO DA RISCRIVERE DELLA VERSIONE CORRENTE
+int send_page(Page* curr_page, int* pipefd_sw, int cols, int w_col, int spacing, char spacing_char) {
+    if (pipefd_sw == NULL || curr_page == NULL || spacing_char == '\0' || cols == 0 || w_col == 0 || spacing == 0) {
         return INVALID_INPUT;
     }
 
@@ -133,68 +134,38 @@ int send_page(Page* curr_page, int* pipefd_sw, int spacing, char spacing_char) {
 
         // viene allocato 1 byte per salvare il '\0',
         // che verrà posto al termine della riga corrente
-        char* joined_line = calloc(1, sizeof(char));
+        int len = (4 * w_col + spacing) * cols - spacing + 1;
+
+        char* joined_line = calloc(len, sizeof(char));
 
         if (joined_line == NULL) {
             return ALLOC_ERROR;
         }
 
-        // questa variabile rappresenta la lunghezza della *stringa* della riga,
-        // non l'effettivo numero di byte (dunque vi sarà una differenza di 1),
-        // per via del '\0' già posto in precedenza)
-        int len = 0;
+        int i = 0;
 
-        // per ognuno dei chunk della riga corrente
-        while (line_chunk != NULL) {
-            char* new_joined_line;
-            char* content = line_chunk->content;
+        // TODO: QUESTO METODO FUNZIONA SOLO SE FPRINTF SI FERMA QUANDO CIOCCA \0 (SPERO DE SI)
+        while (true) {
+            // TODO: salva il content qua
 
-            int len_backup = len;
-            int content_len = strlen(content);
-
-            // se il prossimo chunk non è NULL, allora il chunk corrente non è l'ultimo,
-            // e dunque è possibile inserire il separatore tra colonne della pagina
-            if (line_chunk->next_line_chunk != NULL) {
-                // viene allocata una nuova stringa, avente la dimensione che la stringa
-                // aveva prima, sommata alla dimensione del chunk da inserire, ed alla spaziatura
-                // tra le colonne della pagina
-                new_joined_line = calloc(len + content_len + spacing, sizeof(char));
-
-                // alla lunghezza corrente viene aggiunta la spaziatura tra colonne
-                len += spacing;
-            } else {
-                // viene solamente creato lo spazio per il chunk da inserire
-                new_joined_line = calloc(len + content_len, sizeof(char));
-            }
-
-            if (new_joined_line == NULL) {
+            if (line_chunk->content == NULL) { // TODO:controlla che non dia errori
                 free(joined_line);
                 return ALLOC_ERROR;
             }
+            
+            strcat(joined_line, line_chunk->content);
 
-            // alla lunghezza corrente viene aggiunta la dimensione del chunk appena inserito
-            len += content_len;
+            i += strlen(line_chunk->content);
 
-            // viene copiato il contenuto della riga precedente nella nuova riga, con dimensione maggiore
-            memcpy(new_joined_line, joined_line, len_backup);
-
-            // viene inserito il chunk corrente al termine della nuova riga
-            strcat(new_joined_line, content);
-
-            // se prossimo chunk non è NULL, allora il chunk corrente non è l'ultimo,
-            // ed è dunque necessario inserire lo spazio di separazione tra le colonne della pagina
-            if (line_chunk->next_line_chunk != NULL) {
-                for (int i = 0; i < spacing; i++) {
-                    new_joined_line[len - spacing + i] = spacing_char;
-                }
+            if (line_chunk->next_line_chunk == NULL) {
+                break;
             }
 
-            // printf("boh: %s | %s | %d | %d\n", joined_line, new_joined_line, joined_line, new_joined_line);
-            // free(joined_line); // TODO: PER UNO DEI TEST QUESTA COSA SI ROMPE, MA INVECE ANDREBBE FATTA È IMPORTANTE
+            for (int j = i; j < i + spacing; j++) {
+                joined_line[j] = spacing_char;
+            }
 
-            // viene rimpiazzato il puntatore della riga corrente, con il puntatore
-            // della nuova riga
-            joined_line = new_joined_line;
+            i += spacing;
 
             line_chunk = (LineChunk*) line_chunk->next_line_chunk;
         }
@@ -220,14 +191,14 @@ int send_page(Page* curr_page, int* pipefd_sw, int spacing, char spacing_char) {
 }
 
 /*
-    La funzione prende in input due pipe, il numero di colonne di una pagina, il numero di righe di una pagina,
-    il numero di caratteri, ed il carattere, di separazione tra le colonne di una pagina, ed invia al processo
-    di scrittura le righe delle pagine, non appena quest'ultime sono state completate.
+    La funzione prende in input due pipe, tutte le informazioni che definiscono la struttura di una pagina,
+    ed il carattere di separazione tra le colonne di una pagina, ed invia al processo di scrittura
+    le righe delle pagine, non appena quest'ultime sono state completate.
 
     I commenti in questa funzione sono ridotti al minimo, poiché sarebbero una sola ripetizione dei commenti
     che sono presenti nella funzione della versione monoprocesso.
 */
-int build_pages_par(int* pipefd_rs, int* pipefd_sw, int cols, int h_col, int spacing, char spacing_char) {
+int build_pages_par(int* pipefd_rs, int* pipefd_sw, int cols, int h_col, int w_col, int spacing, char spacing_char) {
     Page* curr_page = new_page(NULL);
     Page* prev_page = NULL;
 
@@ -305,7 +276,7 @@ int build_pages_par(int* pipefd_rs, int* pipefd_sw, int cols, int h_col, int spa
 
         if (col_counter == cols) {
             // se la pagina è stata completata, allora viene mandata al processo di scrittura
-            int exit_code = send_page(curr_page, pipefd_sw, spacing, spacing_char);
+            int exit_code = send_page(curr_page, pipefd_sw, cols, w_col, spacing, spacing_char);
 
             if (exit_code != PAGE_SUCCESS) {
                 free(prev_page);
@@ -334,7 +305,7 @@ int build_pages_par(int* pipefd_rs, int* pipefd_sw, int cols, int h_col, int spa
 
     // questo ulteriore invio è necessario, poiché altrimenti l'ultima pagina
     // non sarebbe stata mandata al processo di scrittura
-    int exit_code = send_page(curr_page, pipefd_sw, spacing, spacing_char);
+    int exit_code = send_page(curr_page, pipefd_sw, cols, w_col, spacing, spacing_char);
 
     free(curr_page);
 
