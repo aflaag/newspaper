@@ -175,7 +175,7 @@ int read_chunk(FILE* input_file, char** line_chunk_content, int* w_col, long* ba
         // i paragrafi sono contraddistinti da un singolo '\n', dunque ogni volta che ne viene letto uno, è
         // necessario inizalizzare la procedura di riconoscimento del paragrafo; si noti che bisogna anche
         // controllare che non ci si trovi sul primo carattere della prima colonna della pagina corrente,
-        // altrimenti TODO: non so a che serve
+        // altrimenti viene inserita una riga vuota all'inizio della pagina
         if (curr_char == '\n' && (!is_first_line_first_col || is_first_line_first_col && is_text_started)) {
             // si noti che va letto il carattere in next_pos, altrimenti si
             // salterebbe un carattere, letto da fgetc in next_char
@@ -414,6 +414,8 @@ int build_pages(FILE* input_file, Page* curr_page, int cols, int h_col, int w_co
 
             int trunc_err = TRUNCATED_HANDLING_SUCCESS;
             
+            // se il testo in input non è ancora terminato, bisogna gestire il caso in cui l'ultima
+            // parola del chunk letto è stata troncata
             if (end_value != ENDED_TEXT) {
                 trunc_err = handle_truncated_string(input_file, &line_chunk_content, &w_col, &curr_pos);
             }

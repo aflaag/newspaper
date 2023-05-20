@@ -72,7 +72,42 @@ sh run_tests.sh
 
 ## Architettura
 
-TODO: spiega la struttura del programma
+La versione mono-processo del progrmama effettua la lettura dei caratteri, dal file di input, in "_chunk_" (ovvero, una riga di una colonna di una pagina); contemporaneamente, viene costruita una struttura dati per mantenere le informazioni delle pagine che vengono costruite, per poterle stampare correttamente sul file di output successivamente.
+
+La struttura che viene utilizzata (anche all'interno della versione multi-processo) è la seguente:
+
+```text
++-----PAGINA--------------------------------------------------+
+| +---LINEA-------------------------------------------------+ |
+| | +-CHUNK--+     +--------+     +--------+                | |
+| | |        | --> |        | --> |        | -->     ...    | |
+| | +--------+     +--------+     +--------+                | |
+| +---------------------------------------------------------+ |
+|                              |                              |
+|                              v                              |
+| +---------------------------------------------------------+ |
+| | +--------+     +--------+     +--------+                | |
+| | |        | --> |        | --> |        | -->     ...    | |
+| | +--------+     +--------+     +--------+                | |
+| +---------------------------------------------------------+ |
+|                              |                              |
+|                              v                              |
+| +---------------------------------------------------------+ |
+| | +--------+     +--------+     +--------+                | |
+| | |        | --> |        | --> |        | -->     ...    | |
+| | +--------+     +--------+     +--------+                | |
+| +---------------------------------------------------------+ |
+|                              |                              |
+|                              v                              |
+|                             ...                             |
++-------------------------------------------------------------+
+                               |                               
+                               v
+                              ...
+```
+
+La versione multi-processo è strutturata in maniera gerarchica
+TODO: finisci di scriverlo dopo aver gestito gli errori perche non è detto che la struttura rimanga questa
 
 ## TODO list
 
@@ -84,4 +119,5 @@ TODO: spiega la struttura del programma
 - gestire gli errori dei processi
 - fare questo readme
   - architettura
+    - finire la parte che manca
 - mettere la release su github
