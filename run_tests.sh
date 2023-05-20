@@ -43,6 +43,7 @@ run_test sample_inputs/makefile_in.txt expected_outputs/makefile_out.txt 3 8 16 
 run_test sample_inputs/example_in.txt expected_outputs/example_out.txt 3 5 15 5 false
 run_test sample_inputs/example2_in.txt expected_outputs/example2_out.txt 3 5 15 5 false
 run_test sample_inputs/example3_in.txt expected_outputs/example3_out.txt 3 5 15 5 false
+run_test sample_inputs/example4_in.txt expected_outputs/example4_out.txt 200 5 15 5 false
 run_test sample_inputs/ionut_in.txt expected_outputs/ionut_out.txt 3 40 60 10 false
 run_test sample_inputs/dante_in.txt expected_outputs/dante_out.txt 5 40 20 5 false
 
@@ -62,6 +63,7 @@ run_test sample_inputs/makefile_in.txt expected_outputs/makefile_out.txt 3 8 16 
 run_test sample_inputs/example_in.txt expected_outputs/example_out.txt 3 5 15 5 true
 run_test sample_inputs/example2_in.txt expected_outputs/example2_out.txt 3 5 15 5 true
 run_test sample_inputs/example3_in.txt expected_outputs/example3_out.txt 3 5 15 5 true
+run_test sample_inputs/example4_in.txt expected_outputs/example4_out.txt 200 5 15 5 true
 run_test sample_inputs/ionut_in.txt expected_outputs/ionut_out.txt 3 40 60 10 true
 run_test sample_inputs/dante_in.txt expected_outputs/dante_out.txt 5 40 20 5 true
 
