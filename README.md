@@ -111,6 +111,7 @@ TODO: finisci di scriverlo dopo aver gestito gli errori perche non è detto che 
 
 ## TODO list
 
+- fixa bug che ha trovato ionut
 - considera di mettere i file in cartelle
   - in caso, riscrivere il makefile
 - ricontrolla TUTTE le cose da commentare, che adesso è un po un macello
