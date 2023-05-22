@@ -44,8 +44,13 @@ run_test sample_inputs/example_in.txt expected_outputs/example_out.txt 3 5 15 5 
 run_test sample_inputs/example2_in.txt expected_outputs/example2_out.txt 3 5 15 5 false
 run_test sample_inputs/example3_in.txt expected_outputs/example3_out.txt 3 5 15 5 false
 run_test sample_inputs/example4_in.txt expected_outputs/example4_out.txt 200 5 15 5 false
-run_test sample_inputs/ionut_in.txt expected_outputs/ionut_out.txt 3 40 60 10 false
+run_test sample_inputs/example5_in.txt expected_outputs/example5_out.txt 200 5 15 5 false
 run_test sample_inputs/dante_in.txt expected_outputs/dante_out.txt 5 40 20 5 false
+run_test sample_inputs/ionut_in.txt expected_outputs/ionut_out.txt 3 40 60 10 false
+run_test sample_inputs/ionut2_in.txt expected_outputs/ionut2_out.txt 3 40 60 10 false
+run_test sample_inputs/ionut3_in.txt expected_outputs/ionut3_out.txt 3 40 60 10 false
+run_test sample_inputs/ionut4_in.txt expected_outputs/ionut4_out.txt 3 40 60 10 false
+run_test sample_inputs/utf8_emojis_in.txt expected_outputs/utf8_emojis_out.txt 3 8 4 10 false
 
 echo ""
 
@@ -64,7 +69,13 @@ run_test sample_inputs/example_in.txt expected_outputs/example_out.txt 3 5 15 5 
 run_test sample_inputs/example2_in.txt expected_outputs/example2_out.txt 3 5 15 5 true
 run_test sample_inputs/example3_in.txt expected_outputs/example3_out.txt 3 5 15 5 true
 run_test sample_inputs/example4_in.txt expected_outputs/example4_out.txt 200 5 15 5 true
-run_test sample_inputs/ionut_in.txt expected_outputs/ionut_out.txt 3 40 60 10 true
+run_test sample_inputs/example5_in.txt expected_outputs/example5_out.txt 200 5 15 5 true
 run_test sample_inputs/dante_in.txt expected_outputs/dante_out.txt 5 40 20 5 true
+run_test sample_inputs/ionut_in.txt expected_outputs/ionut_out.txt 3 40 60 10 true
+run_test sample_inputs/ionut_in.txt expected_outputs/ionut_out.txt 3 40 60 10 true
+run_test sample_inputs/ionut2_in.txt expected_outputs/ionut2_out.txt 3 40 60 10 true
+run_test sample_inputs/ionut3_in.txt expected_outputs/ionut3_out.txt 3 40 60 10 true
+run_test sample_inputs/ionut4_in.txt expected_outputs/ionut4_out.txt 3 40 60 10 true
+run_test sample_inputs/utf8_emojis_in.txt expected_outputs/utf8_emojis_out.txt 3 8 4 10 true
 
 printf "\n[$PASSED_TESTS/$TOTAL_TESTS] tests passed.\n"

@@ -111,7 +111,9 @@ TODO: finisci di scriverlo dopo aver gestito gli errori perche non è detto che 
 
 ## TODO list
 
-- fixa bug che ha trovato ionut
+- ionut5 non funziona
+- testare che funzioni a fine paragrafo preciso, non a fine pagina
+- testarlo non alla fine di niente, in casi più al centro
 - considera di mettere i file in cartelle
   - in caso, riscrivere il makefile
 - ricontrolla TUTTE le cose da commentare, che adesso è un po un macello

@@ -261,6 +261,8 @@ int read_chunk(FILE* input_file, char** line_chunk_content, int* w_col, long* ba
 
     char last_char = fgetc(input_file);
 
+    bool last_utf8 = false;
+
     // i caratteri multibyte utf-8 contengono byte "di controllo" che permettono
     // di rappresentare molti più caratteri della tabella ASCII standard; tali byte
     // hanno i primi due bit pari a 0b10, ma il problema è che tali byte non sono mai
@@ -273,7 +275,10 @@ int read_chunk(FILE* input_file, char** line_chunk_content, int* w_col, long* ba
     // incrementato poiché non è stato ancora visto il byte da leggere), corrompendo il contenuto
     // della riga; è dunque necessario accertarsi che il prossimo byte, al termine del ciclo,
     // non sia un byte utf-8, e in tal caso va inserito nel chunk corrente
-    if (is_utf8((unsigned char) last_char)) {
+    // if (is_utf8((unsigned char) last_char)) {
+    while (is_utf8((unsigned char) last_char)) {
+        last_utf8 = true;
+
         (*line_chunk_content)[*w_col + *unicode_offset] = last_char;
 
         *unicode_offset += 1;
@@ -285,7 +290,11 @@ int read_chunk(FILE* input_file, char** line_chunk_content, int* w_col, long* ba
         }
 
         *line_chunk_content = new_line_chunk_content;
-    } else {
+
+        last_char = fgetc(input_file);
+    }
+    
+    if (!last_utf8) {
         // se l'ultimo carattere non era utf-8, va resettata la posizione corrente nel file
         if (fseek(input_file, curr_pos, SEEK_SET)) {
             return FSEEK_ERROR;
