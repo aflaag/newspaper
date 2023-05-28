@@ -106,11 +106,13 @@ La struttura che viene utilizzata (anche all'interno della versione multi-proces
                               ...
 ```
 
-La versione multi-processo è strutturata in maniera gerarchica
-TODO: finisci di scriverlo dopo aver gestito gli errori perche non è detto che la struttura rimanga questa
+La versione multi-processo è TODO: finisci di scriverlo dopo averla fatta funzionare
 
 ## TODO list
 
+- considera di creare più main
+  - commenta tutti i main (?)
+- finire di fare la versione multiprocesso
 - ionut5 non funziona
 - testare che funzioni a fine paragrafo preciso, non a fine pagina
 - testarlo non alla fine di niente, in casi più al centro

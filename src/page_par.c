@@ -280,6 +280,8 @@ int build_pages_par(int* pipefd_rs, int* pipefd_sw, int cols, int h_col, int w_c
         if (col_counter == cols) {
             // se la pagina è stata completata, allora viene mandata al processo di scrittura
             int exit_code = send_page(curr_page, pipefd_sw, cols, w_col, spacing, spacing_char);
+            
+            // TODO: CURR_PAGE VA LIBERATA
 
             if (exit_code != PAGE_SUCCESS) {
                 free(prev_page);
@@ -309,6 +311,8 @@ int build_pages_par(int* pipefd_rs, int* pipefd_sw, int cols, int h_col, int w_c
     // questo ulteriore invio è necessario, poiché altrimenti l'ultima pagina
     // non sarebbe stata mandata al processo di scrittura
     int exit_code = send_page(curr_page, pipefd_sw, cols, w_col, spacing, spacing_char);
+
+    print_pages(stdout, curr_page, 10, "test", ' ');
 
     free(curr_page);
 

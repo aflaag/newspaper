@@ -1,0 +1,6 @@
+{
+    "files.associations": {
+        "page_par.h": "c",
+        "page.h": "c"
+    }
+}
