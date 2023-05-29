@@ -17,6 +17,7 @@ int read_input_file_par(int* pipefd_rs, FILE* input_file, int cols, int h_col, i
     int col_counter = 0;
 
     bool is_new_par = false;
+    bool exited_end_value = false;
 
     while (!feof(input_file)) {
         long curr_pos = ftell(input_file);
@@ -92,6 +93,7 @@ int read_input_file_par(int* pipefd_rs, FILE* input_file, int cols, int h_col, i
         free(line_chunk_content);
 
         if (end_value == ENDED_TEXT) {
+            exited_end_value = true;
             break;
         }
 
@@ -112,6 +114,21 @@ int read_input_file_par(int* pipefd_rs, FILE* input_file, int cols, int h_col, i
         w_col -= unicode_offset;
     }
 
+    // printf("end_value dal primo: %d\n", end_value);
+
+    if (!exited_end_value) {
+        int len = 0;
+        char* line_chunk_content = "";
+        int end_value = ENDED_TEXT;
+
+        if (write(pipefd_rs[1], &len, sizeof(int)) == -1 ||
+            write(pipefd_rs[1], line_chunk_content, len) == -1 ||
+            write(pipefd_rs[1], &end_value, sizeof(int)) == -1) {
+            // free(line_chunk_content);
+            return WRITE_ERROR;
+        }
+    }
+
     return PAGE_SUCCESS;
 }
 
@@ -121,7 +138,7 @@ int read_input_file_par(int* pipefd_rs, FILE* input_file, int cols, int h_col, i
     e manda la pagina fornita in input, riga per riga, al processo di scrittura; le righe mandate
     contengono anche gli spazi tra le colonne costruite, ma non contengono il \n alla fine.
 */
-int send_page(Page* curr_page, int* pipefd_sw, int cols, int w_col, int spacing, char spacing_char) {
+int send_page(Page* curr_page, int* pipefd_sw, int cols, int w_col, int spacing, char spacing_char, bool is_last_page) {
     if (pipefd_sw == NULL || curr_page == NULL || spacing_char == '\0' || cols == 0 || w_col == 0 || spacing == 0) {
         return INVALID_INPUT;
     }
@@ -177,10 +194,17 @@ int send_page(Page* curr_page, int* pipefd_sw, int cols, int w_col, int spacing,
         // ma è necessario contare anche quest'ultimo all'inteno della pipe
         len++;
 
+        bool is_finished = (line->next_line == NULL) && is_last_page;
+
+        // if (line->next_line == NULL) {
+        //     is_finished = true
+        // }
+
         // attraverso la pipe, viene prima mandata la lunghezza della riga che sta per
         // essere inviata, e successivamente viene mandata la riga stessa
         if (write(pipefd_sw[1], &len, sizeof(int)) == -1 ||
-            write(pipefd_sw[1], joined_line, len) == -1) {
+            write(pipefd_sw[1], joined_line, len) == -1 ||
+            write(pipefd_sw[1], &is_finished, sizeof(bool)) == -1) {
             free(joined_line);
             return WRITE_ERROR;
         }
@@ -214,30 +238,56 @@ int build_pages_par(int* pipefd_rs, int* pipefd_sw, int cols, int h_col, int w_c
 
     bool h_col_reached = false;
     bool is_new_par = false;
+    bool porcodio = false;
 
     // rappresenta la lunghezza del prossimo chunk da leggere nella pipe
     int len;
 
-    while (read(pipefd_rs[0], &len, sizeof(int))) {
+    while (true) {
+        read(pipefd_rs[0], &len, sizeof(int));
+        // printf("len: %d\n", len);
+
         char* line_chunk_content = calloc(len, sizeof(char));
 
         int end_value;
 
+        // TODO: CONTROLLARE CHE READ NON FALLISCA
         // vengono letti dalla pipe il prossimo chunk, ed 'end_value',
         // per sapere se la lettura del file è terminata
         read(pipefd_rs[0], line_chunk_content, len);
+        // printf("line_chunk_content: %s\n", line_chunk_content);
         read(pipefd_rs[0], &end_value, sizeof(int));
+        // printf("end_value: %d\n", end_value);
 
         if (is_empty(line_chunk_content, len)) {
             free(line_chunk_content);
 
-            if (col_counter == 0 && chunks_counter % h_col == 0 && prev_page != NULL) {
-                free(curr_page);
+            if (col_counter == 0 && chunks_counter % h_col == 0) {
+                if (prev_page != NULL) {
+                    free(curr_page);
 
-                prev_page->next_page = NULL;
+                    prev_page->next_page = NULL;
 
-                curr_page = prev_page;
+                    curr_page = prev_page;
+
+                    porcodio = true;
+                } else {
+                    int len = 0;
+                    write(pipefd_sw[1], &len, sizeof(int));
+                }
             }
+
+            // int len = 0;
+            // char* joined_line = "";
+            // bool is_finished = true;
+
+            // if (write(pipefd_sw[1], &len, sizeof(int)) == -1 ||
+            //     write(pipefd_sw[1], joined_line, len) == -1 ||
+            //     write(pipefd_sw[1], &is_finished, sizeof(bool)) == -1) {
+            //     return WRITE_ERROR;
+            // }
+
+            // return PAGE_SUCCESS;
 
             break;
         }
@@ -279,7 +329,7 @@ int build_pages_par(int* pipefd_rs, int* pipefd_sw, int cols, int h_col, int w_c
 
         if (col_counter == cols) {
             // se la pagina è stata completata, allora viene mandata al processo di scrittura
-            int exit_code = send_page(curr_page, pipefd_sw, cols, w_col, spacing, spacing_char);
+            int exit_code = send_page(curr_page, pipefd_sw, cols, w_col, spacing, spacing_char, false);
             
             // TODO: CURR_PAGE VA LIBERATA
 
@@ -310,15 +360,28 @@ int build_pages_par(int* pipefd_rs, int* pipefd_sw, int cols, int h_col, int w_c
 
     // questo ulteriore invio è necessario, poiché altrimenti l'ultima pagina
     // non sarebbe stata mandata al processo di scrittura
-    int exit_code = send_page(curr_page, pipefd_sw, cols, w_col, spacing, spacing_char);
+    if (!porcodio) {
+        int exit_code = send_page(curr_page, pipefd_sw, cols, w_col, spacing, spacing_char, true);
 
-    print_pages(stdout, curr_page, 10, "test", ' ');
+        free(curr_page);
 
-    free(curr_page);
+        if (exit_code != PAGE_SUCCESS) {
+            return exit_code;
+        }
+    } else {
+        int len = 0;
+        char* joined_line = "";
+        bool is_finished = true;
 
-    if (exit_code != PAGE_SUCCESS) {
-        return exit_code;
+        if (write(pipefd_sw[1], &len, sizeof(int)) == -1 ||
+            write(pipefd_sw[1], joined_line, len) == -1 ||
+            write(pipefd_sw[1], &is_finished, sizeof(bool)) == -1) {
+            return WRITE_ERROR;
+        }
     }
+
+    // print_pages(stdout, curr_page, 10, "test", ' '); // TODO: rimuovi, debug
+
 
     return PAGE_SUCCESS;
 }
@@ -342,7 +405,8 @@ int write_output_file_par(int* pipefd_sw, FILE* output_file, int h_col, int spac
 
     if (read_code < 0) {
         return READ_ERROR;
-    } else if (read_code == 0) {
+
+    } else if (len == 0) {
         return PAGE_SUCCESS; // il file in input conteneva solamente spaziatura
     }
 
@@ -357,6 +421,7 @@ int write_output_file_par(int* pipefd_sw, FILE* output_file, int h_col, int spac
 
         // la prossima riga da scrivere nel file
         if (read(pipefd_sw[0], line, len) <= 0) {
+            // printf("%d\n", len);
             free(line);
             return READ_ERROR;
         }
@@ -366,6 +431,19 @@ int write_output_file_par(int* pipefd_sw, FILE* output_file, int h_col, int spac
         fprintf(output_file, "%s\n", line);
 
         lines_counter++;
+
+        bool is_finished;
+
+        // la prossima riga da scrivere nel file
+        if (read(pipefd_sw[0], &is_finished, sizeof(bool)) <= 0) {
+            free(line);
+            return READ_ERROR;
+        }
+
+        if (is_finished) {
+            free(line);
+            break;
+        }
 
         // la lunghezza della prossima riga che verrà letta nella pipe;
         // l'avanzamento viene fatto qui, e non come condizione di uscita del while,
@@ -380,9 +458,14 @@ int write_output_file_par(int* pipefd_sw, FILE* output_file, int h_col, int spac
                 return READ_ERROR;
             }
 
+            if (len == 0) {
+                break;
+            }
+
             // se questa era l'ultima riga della pagina, e quella corrente non è l'ultima pagina
             // (si veda il controllo precedente), allora è possibile inserire il separatore tra pagine
             if (lines_counter == h_col) {
+                // fprintf(output_file, pages_separator);
                 fprintf(output_file, pages_separator);
 
                 lines_counter = 0;

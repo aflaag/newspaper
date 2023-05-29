@@ -113,6 +113,7 @@ La versione multi-processo è TODO: finisci di scriverlo dopo averla fatta funzi
 - considera di creare più main
   - commenta tutti i main (?)
 - finire di fare la versione multiprocesso
+  - commenta le cose nuove
 - ionut5 non funziona
 - testare che funzioni a fine paragrafo preciso, non a fine pagina
 - testarlo non alla fine di niente, in casi più al centro

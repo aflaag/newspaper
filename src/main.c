@@ -242,34 +242,33 @@ int par_main(char* input_path, char* output_path, int cols, int h_col, int w_col
         return exit_code;
     }
 
-    // if ((pid3 = fork()) == -1) {
-    //     fprintf(stderr, "An error has occurred while trying to fork.\n");
-    //     return FORK_ERROR;
-    // }
+    if ((pid3 = fork()) == -1) {
+        fprintf(stderr, "An error has occurred while trying to fork.\n");
+        return FORK_ERROR;
+    }
 
-    // if (pid3 == 0) {
-    //     if (close(pipefd_sw[1]) == -1) {
-    //         fprintf(stderr, "An error occurred while trying to close a pipe.\n");
-    //         return PIPE_ERROR;
-    //     }
+    if (pid3 == 0) {
+        if (close(pipefd_sw[1]) == -1) {
+            fprintf(stderr, "An error occurred while trying to close a pipe.\n");
+            return PIPE_ERROR;
+        }
         
-    //     int exit_code = write_output_file_par(pipefd_sw, output_file, h_col, spacing, "\n%%%%%%\n\n");
-    //     printf("%d\n", exit_code);
+        int exit_code = write_output_file_par(pipefd_sw, output_file, h_col, spacing, "\n%%%%%%\n\n");
 
-    //     exit_code = handle_exit_code(exit_code);
+        exit_code = handle_exit_code(exit_code);
 
-    //     if (close(pipefd_sw[0]) == -1) {
-    //         fprintf(stderr, "An error occurred while trying to close a pipe.\n");
-    //         return PIPE_ERROR;
-    //     }
+        if (close(pipefd_sw[0]) == -1) {
+            fprintf(stderr, "An error occurred while trying to close a pipe.\n");
+            return PIPE_ERROR;
+        }
 
-    //     return exit_code;
-    // }
+        return exit_code;
+    }
 
     bool pid1_closed = false;
     bool pid2_closed = false;
-    // bool pid3_closed = false;
-    bool pid3_closed = true;
+    bool pid3_closed = false;
+    // bool pid3_closed = true;
 
     int pid1_status = 0;
     int pid2_status = 0;
