@@ -208,6 +208,7 @@ int send_page(Page* curr_page, int* pipefd_sw, int cols, int w_col, int spacing,
     I commenti in questa funzione sono ridotti al minimo, poiché sarebbero una sola ripetizione dei commenti
     che sono presenti nella funzione della versione monoprocesso.
 */
+// TODO: CONTROLLA I FREE QUA DENTRO MO NON C'HO VOGLIA (NEGLI ERRORI INSOMMA)
 int build_pages_par(int* pipefd_rs, int* pipefd_sw, int cols, int h_col, int w_col, int spacing, char spacing_char) {
     Page* curr_page = new_page(NULL);
     Page* prev_page = NULL;
@@ -221,7 +222,10 @@ int build_pages_par(int* pipefd_rs, int* pipefd_sw, int cols, int h_col, int w_c
 
     bool h_col_reached = false;
     bool is_new_par = false;
-    bool porcodio = false;
+
+    // questa flag viene resa 'true' se l'ultimo chunk termina sull'ultima colonna
+    // dell'ultima pagina (corrente)
+    bool is_new_empty_page = false;
 
     // rappresenta la lunghezza del prossimo chunk da leggere nella pipe
     int len;
@@ -249,24 +253,14 @@ int build_pages_par(int* pipefd_rs, int* pipefd_sw, int cols, int h_col, int w_c
         if (is_empty(line_chunk_content, len)) {
             free(line_chunk_content);
 
-            if (col_counter == 0 && chunks_counter % h_col == 0) {
-                // TODO: non mi ricordo niente
-                if (prev_page != NULL) {
-                    free(curr_page);
+            if (col_counter == 0 && chunks_counter % h_col == 0 && prev_page != NULL) {
+                free(curr_page);
 
-                    prev_page->next_page = NULL;
+                prev_page->next_page = NULL;
 
-                    curr_page = prev_page;
+                curr_page = prev_page;
 
-                    porcodio = true;
-                } else {
-                    int len = 0;
-
-                    // TODO: ci sono free da fare?
-                    if (write(pipefd_sw[1], &len, sizeof(int)) == -1) {
-                        return READ_ERROR;
-                    }
-                }
+                is_new_empty_page = true;
             }
 
             break;
@@ -340,8 +334,10 @@ int build_pages_par(int* pipefd_rs, int* pipefd_sw, int cols, int h_col, int w_c
 
     // questo ulteriore invio è necessario, poiché altrimenti l'ultima pagina
     // non sarebbe stata mandata al processo di scrittura, ma deve essere eseguito esclusivamente
-    // se TODO:
-    if (!porcodio) {
+    // se l'ultima pagina creata non è vuota (nel caso in cui il testo terminava alla fine della pagina
+    // precedente, sull'ultimo chunk dell'ultima colonna), poiché la vera ultima pagina
+    // era stata già mandata all'interno del ciclo precedente
+    if (!is_new_empty_page) {
         int exit_code = send_page(curr_page, pipefd_sw, cols, w_col, spacing, spacing_char);
 
         free(curr_page);
@@ -428,7 +424,6 @@ int write_output_file_par(int* pipefd_sw, FILE* output_file, int h_col, int spac
         // se questa era l'ultima riga della pagina, e quella corrente non è l'ultima pagina
         // (si veda il controllo precedente), allora è possibile inserire il separatore tra pagine
         if (lines_counter == h_col) {
-            // fprintf(output_file, pages_separator);
             fprintf(output_file, pages_separator);
 
             lines_counter = 0;

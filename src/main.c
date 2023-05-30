@@ -22,6 +22,7 @@
 #define UNKNOWN_ERROR -9 // restituita se si sono verificati errori di natura ignota
 #define FORK_ERROR -10 // restituita se si sono verificati errori durante il fork di un processo
 #define PIPE_ERROR -11 // restituita se si sono verificati errori durante la lettura o la scrittura con una pipe tra processi
+#define MULTIPROCESS_FAILURE -12 // restituita se si sono verificati errori nella versione multi-processo (potrebbero essersene verificati molteplici)
 
 /*
     La funzione gestisce i codici di errori che vengono restituiti
@@ -146,13 +147,19 @@ bool kill_processes(pid_t pid1, pid_t pid2) {
     due processi.
 */
 bool handle_wait(pid_t pid_wait, int pid_status, pid_t other_pid1, pid_t other_pid2, bool* pid_closed) {
+    bool exited_successfully = false;
+
     if (pid_wait != 0) {
         *pid_closed = true;
 
         if (pid_wait < 0 || !WIFEXITED(pid_status) || WEXITSTATUS(pid_status) != PROGRAM_SUCCESS) {
             *pid_closed = kill_processes(other_pid1, other_pid2);
+        } else {
+            exited_successfully = true;
         }
     }
+
+    return exited_successfully;
 }
 
 /*
@@ -286,23 +293,27 @@ int par_main(char* input_path, char* output_path, int cols, int h_col, int w_col
     int pid2_status = 0;
     int pid3_status = 0; 
 
+    int exited_successfully1 = false;
+    int exited_successfully2 = false;
+    int exited_successfully3 = false;
+
     while (!pid1_closed || !pid2_closed || !pid3_closed) {
         if (!pid1_closed) {
             pid_t pid1_wait = waitpid(pid1, &pid1_status, WNOHANG);
 
-            handle_wait(pid1_wait, pid1_status, pid2, pid3, &pid1_closed);
+            exited_successfully1 = handle_wait(pid1_wait, pid1_status, pid2, pid3, &pid1_closed);
         }
 
         if (!pid2_closed) {
             pid_t pid2_wait = waitpid(pid2, &pid2_status, WNOHANG);
 
-            handle_wait(pid2_wait, pid2_status, pid1, pid3, &pid2_closed);
+            exited_successfully2 = handle_wait(pid2_wait, pid2_status, pid1, pid3, &pid2_closed);
         }
 
         if (!pid3_closed) {
             pid_t pid3_wait = waitpid(pid3, &pid3_status, WNOHANG);
 
-            handle_wait(pid3_wait, pid3_status, pid1, pid2, &pid3_closed);
+            exited_successfully3 = handle_wait(pid3_wait, pid3_status, pid1, pid2, &pid3_closed);
         }
     }
 
@@ -314,6 +325,10 @@ int par_main(char* input_path, char* output_path, int cols, int h_col, int w_col
     if (fclose(output_file)) {
         fprintf(stderr, "An error occurred while trying to closing the output file '%s'.\n", output_path);
         return OUTPUT_FILE_CLOSING_FAILURE;
+    }
+
+    if (!exited_successfully1 || !exited_successfully2 || !exited_successfully3) {
+        return MULTIPROCESS_FAILURE;
     }
 
     return PROGRAM_SUCCESS;

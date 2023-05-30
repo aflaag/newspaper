@@ -110,20 +110,14 @@ La versione multi-processo è TODO: finisci di scriverlo dopo averla fatta funzi
 
 ## TODO list
 
-- controlla le swearwords
-- considera di creare più main
-  - commenta tutti i main (?)
-- finire di fare la versione multiprocesso
-  - commenta le cose nuove
+- controllare i free
 - ionut5 non funziona
-- testare che funzioni a fine paragrafo preciso, non a fine pagina
-- testarlo non alla fine di niente, in casi più al centro
+  - testare che funzioni a fine paragrafo preciso, non a fine pagina
+  - testarlo non alla fine di niente, in casi più al centro
 - considera di mettere i file in cartelle
   - in caso, riscrivere il makefile
 - ricontrolla TUTTE le cose da commentare, che adesso è un po un macello
   - finire di commentare la funzione di lettura del chunk in page.c (la parte nel TODO, non ricordo che cosa faccia quel pezzo di codice)
-  - finire di commentare la funzione principale in page.c
-- gestire gli errori dei processi
 - fare questo readme
   - architettura
     - finire la parte che manca
