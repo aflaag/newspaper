@@ -114,7 +114,10 @@ int non_par_main(char* input_path, char* output_path, int cols, int h_col, int w
     return exit_code;
 }
 
-// TODO: COMMENTA
+/*
+    Dati i pid di 2 processi, la funzione manda loro SIGTERM, restituendo se si sono verificati degli
+    errori durante tale invio di segnale.
+*/
 bool kill_processes(pid_t pid1, pid_t pid2) {
     bool exit_code = true;
 
@@ -137,7 +140,11 @@ bool kill_processes(pid_t pid1, pid_t pid2) {
     return exit_code;
 }
 
-// TODO: COMMENTA
+/*
+    La funzione controlla se il processo fornito in input (avente PID 'pid_wait') sia o non sia terminato;
+    nel caso in cui fosse terminato attraverso un errore, viene mandato il segnale di terminazione agli altri
+    due processi.
+*/
 bool handle_wait(pid_t pid_wait, int pid_status, pid_t other_pid1, pid_t other_pid2, bool* pid_closed) {
     if (pid_wait != 0) {
         *pid_closed = true;
@@ -151,7 +158,6 @@ bool handle_wait(pid_t pid_wait, int pid_status, pid_t other_pid1, pid_t other_p
 /*
     La funzione esegue il programma con la versione multi-processo.
 */
-// TODO: COMMENTA
 int par_main(char* input_path, char* output_path, int cols, int h_col, int w_col, int spacing) {
     pid_t pid1;
     pid_t pid2;
@@ -196,6 +202,9 @@ int par_main(char* input_path, char* output_path, int cols, int h_col, int w_col
 
     // TODO: questi credo vadano spostati tutti all'inizio altrimenti se ne fallisce uno
     // poi andrebbero uccisi gli altri non falliti prima di lui
+
+    // il primo processo è responsabile della lettura del file di input, e di mandare i chunk letti
+    // (eventualmente giustificati) al processo di creazione della struttura dati
     if ((pid1 = fork()) == -1) {
         fprintf(stderr, "An error has occurred while trying to fork.\n");
         return FORK_ERROR;
@@ -219,6 +228,8 @@ int par_main(char* input_path, char* output_path, int cols, int h_col, int w_col
         return exit_code;
     }
 
+    // il secondo processo è responsabile della creazione della struttura dati, a partire dai chunk
+    // ricevuti dal primo processo, e di mandare le righe delle pagine al processo di scrittura
     if ((pid2 = fork()) == -1) {
         fprintf(stderr, "An error has occurred while trying to fork.\n");
         return FORK_ERROR;
@@ -242,6 +253,8 @@ int par_main(char* input_path, char* output_path, int cols, int h_col, int w_col
         return exit_code;
     }
 
+    // il terzo processo è reponsabile della scrittura delle pagine ricevute dal processo di creazione della
+    // struttura dati sul file di output
     if ((pid3 = fork()) == -1) {
         fprintf(stderr, "An error has occurred while trying to fork.\n");
         return FORK_ERROR;
@@ -268,14 +281,12 @@ int par_main(char* input_path, char* output_path, int cols, int h_col, int w_col
     bool pid1_closed = false;
     bool pid2_closed = false;
     bool pid3_closed = false;
-    // bool pid3_closed = true;
 
     int pid1_status = 0;
     int pid2_status = 0;
     int pid3_status = 0; 
 
     while (!pid1_closed || !pid2_closed || !pid3_closed) {
-        // printf("%d %d\n", pid1_closed ? 1 : 0, pid2_closed ? 1 : 0);
         if (!pid1_closed) {
             pid_t pid1_wait = waitpid(pid1, &pid1_status, WNOHANG);
 

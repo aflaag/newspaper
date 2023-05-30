@@ -110,6 +110,7 @@ La versione multi-processo è TODO: finisci di scriverlo dopo averla fatta funzi
 
 ## TODO list
 
+- controlla le swearwords
 - considera di creare più main
   - commenta tutti i main (?)
 - finire di fare la versione multiprocesso

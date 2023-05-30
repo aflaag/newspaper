@@ -263,7 +263,6 @@ int read_chunk(FILE* input_file, char** line_chunk_content, int* w_col, long* ba
 
     bool last_utf8 = false;
 
-    // TODO: CAMBIA DA IF A WHILE LA DOCS
     // i caratteri multibyte utf-8 contengono byte "di prolungamento" che permettono
     // di rappresentare molti più caratteri della tabella ASCII standard; tali byte
     // hanno i primi due bit pari a 0b10, ma il problema è che tali byte non sono mai
@@ -274,8 +273,8 @@ int read_chunk(FILE* input_file, char** line_chunk_content, int* w_col, long* ba
     // carattere utf-8 multibyte, il ciclo termina prima di leggerne tutti i suoi byte,
     // perche non vedrà l'ultimo byte utf-8, uscendo prima (perche unicode_offset non può essere
     // incrementato poiché non è stato ancora visto il byte da leggere), corrompendo il contenuto
-    // della riga; è dunque necessario accertarsi che il prossimo byte, al termine del ciclo,
-    // non sia un byte utf-8, e in tal caso va inserito nel chunk corrente
+    // della riga; è dunque necessario accertarsi che i prossimi byte, al termine del ciclo,
+    // non siano byte "di prolungamento" utf-8, e in tal caso vanno inseriti nel chunk corrente
     while (is_utf8((unsigned char) last_char)) {
         last_utf8 = true;
 
