@@ -475,7 +475,14 @@ int build_pages(FILE* input_file, Page* curr_page, int cols, int h_col, int w_co
             // non verrà inserito nella struttura dati, quindi va liberata la sua memoria
             free(line_chunk_content);
 
-            // TODO: commenta sta roba (e controlla cos'altro da commentare nel commit)
+            // se ci si trova in questa condizione, allora si è verificato il caso particolare nel quale
+            // il testo è terminato sull'ultimo chunk dell'ultima colonna dell'ultima pagina, poiché
+            // il "prossimo chunk" sarebbe stato sulla pagina "successiva", che però è già stata creata
+            // all'iterazione precedente, e verrebbe dunque stampata una pagina vuota alla fine del file di output;
+            // allora, per risolvere tale caso particolare, è sufficiente tenersi il puntatore
+            // alla pagina corrente, e se questa condizione dovesse verificarsi, rimpiazzare il puntatore
+            // alla pagina corrente col puntatore alla pagina precdente (che sarà la vera ultima pagina
+            // del file di output)
             if (col_counter == 0 && chunks_counter % h_col == 0 && prev_page != NULL) {
                 free(curr_page);
 

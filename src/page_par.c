@@ -208,7 +208,6 @@ int send_page(Page* curr_page, int* pipefd_sw, int cols, int w_col, int spacing,
     I commenti in questa funzione sono ridotti al minimo, poiché sarebbero una sola ripetizione dei commenti
     che sono presenti nella funzione della versione monoprocesso.
 */
-// TODO: CONTROLLA I FREE QUA DENTRO MO NON C'HO VOGLIA (NEGLI ERRORI INSOMMA)
 int build_pages_par(int* pipefd_rs, int* pipefd_sw, int cols, int h_col, int w_col, int spacing, char spacing_char) {
     Page* curr_page = new_page(NULL);
     Page* prev_page = NULL;
@@ -305,8 +304,6 @@ int build_pages_par(int* pipefd_rs, int* pipefd_sw, int cols, int h_col, int w_c
             // se la pagina è stata completata, allora viene mandata al processo di scrittura
             int exit_code = send_page(curr_page, pipefd_sw, cols, w_col, spacing, spacing_char);
             
-            // TODO: CURR_PAGE VA LIBERATA
-
             if (exit_code != PAGE_SUCCESS) {
                 free(prev_page);
                 free(curr_page);
@@ -418,6 +415,7 @@ int write_output_file_par(int* pipefd_sw, FILE* output_file, int h_col, int spac
         // la lunghezza della prossima riga è utilizzata per notificare che il processo di creazione
         // della struttura dati ha terminato
         if (len == 0) {
+            free(line);
             break;
         }
 

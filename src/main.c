@@ -116,25 +116,17 @@ int non_par_main(char* input_path, char* output_path, int cols, int h_col, int w
 }
 
 /*
-    Dati i pid di 2 processi, la funzione manda loro SIGTERM, restituendo se si sono verificati degli
-    errori durante tale invio di segnale.
+    Dati il pid di un processo, la funzione manda ad esso il segnale SIGTERM, restituendo un booleano per controllare
+    se si sono verificati degli errori durante tale invio di segnale.
 */
-bool kill_processes(pid_t pid1, pid_t pid2) {
+bool kill_process(pid_t pid) {
     bool exit_code = true;
 
-    if (kill(pid1, 0) == -1) {
+    if (kill(pid, 0) == -1) {
         if (errno != ESRCH) {
             exit_code = false;
         }
-    } else if (kill(pid1, SIGTERM) == -1) {
-        exit_code = false;
-    }
-
-    if (kill(pid2, 0) == -1) {
-        if (errno != ESRCH) {
-            exit_code = false;
-        }
-    } else if (kill(pid2, SIGTERM) == -1) {
+    } else if (kill(pid, SIGTERM) == -1) {
         exit_code = false;
     }
 
@@ -153,7 +145,8 @@ bool handle_wait(pid_t pid_wait, int pid_status, pid_t other_pid1, pid_t other_p
         *pid_closed = true;
 
         if (pid_wait < 0 || !WIFEXITED(pid_status) || WEXITSTATUS(pid_status) != PROGRAM_SUCCESS) {
-            *pid_closed = kill_processes(other_pid1, other_pid2);
+            *pid_closed = kill_process(other_pid1);
+            *pid_closed = kill_process(other_pid2);
         } else {
             exited_successfully = true;
         }
@@ -207,9 +200,6 @@ int par_main(char* input_path, char* output_path, int cols, int h_col, int w_col
         return NON_EMPTY_OUTPUT_FILE;
     }
 
-    // TODO: questi credo vadano spostati tutti all'inizio altrimenti se ne fallisce uno
-    // poi andrebbero uccisi gli altri non falliti prima di lui
-
     // il primo processo è responsabile della lettura del file di input, e di mandare i chunk letti
     // (eventualmente giustificati) al processo di creazione della struttura dati
     if ((pid1 = fork()) == -1) {
@@ -239,6 +229,17 @@ int par_main(char* input_path, char* output_path, int cols, int h_col, int w_col
     // ricevuti dal primo processo, e di mandare le righe delle pagine al processo di scrittura
     if ((pid2 = fork()) == -1) {
         fprintf(stderr, "An error has occurred while trying to fork.\n");
+
+        if (!kill_process(pid1)) {
+            fprintf(stderr, "An error occurred while trying to kill a process.\n");
+            return MULTIPROCESS_FAILURE;
+        }
+
+        if (waitpid(pid1, NULL, 0) == -1) {
+            fprintf(stderr, "An error occurred while trying to wait a process.\n");
+            return MULTIPROCESS_FAILURE;
+        }
+
         return FORK_ERROR;
     }
 
@@ -264,6 +265,27 @@ int par_main(char* input_path, char* output_path, int cols, int h_col, int w_col
     // struttura dati sul file di output
     if ((pid3 = fork()) == -1) {
         fprintf(stderr, "An error has occurred while trying to fork.\n");
+
+        if (!kill_process(pid1)) {
+            fprintf(stderr, "An error occurred while trying to kill a process.\n");
+            return MULTIPROCESS_FAILURE;
+        }
+
+        if (waitpid(pid1, NULL, 0) == -1) {
+            fprintf(stderr, "An error occurred while trying to wait a process.\n");
+            return MULTIPROCESS_FAILURE;
+        }
+
+        if (!kill_process(pid2)) {
+            fprintf(stderr, "An error occurred while trying to kill a process.\n");
+            return MULTIPROCESS_FAILURE;
+        }
+
+        if (waitpid(pid2, NULL, 0) == -1) {
+            fprintf(stderr, "An error occurred while trying to wait a process.\n");
+            return MULTIPROCESS_FAILURE;
+        }
+
         return FORK_ERROR;
     }
 

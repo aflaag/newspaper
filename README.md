@@ -106,19 +106,10 @@ La struttura che viene utilizzata (anche all'interno della versione multi-proces
                               ...
 ```
 
-La versione multi-processo è TODO: finisci di scriverlo dopo averla fatta funzionare
+La versione multi-processo è gestita spawnando 3 processi, il primo responsabile della lettura del file di input, il secondo responsabile della creazione della struttura dati, ed il terzo responsabile della stampa sul file di output. Il processo che spawna tali sottoprocessi è invece responsabile di gestire gli errori che i suoi processi figli potrebbero restituire, andando a terminare quelli ancora in esecuzione.
 
 ## TODO list
 
-- controllare i free
-- ionut5 non funziona
-  - testare che funzioni a fine paragrafo preciso, non a fine pagina
-  - testarlo non alla fine di niente, in casi più al centro
-- considera di mettere i file in cartelle
-  - in caso, riscrivere il makefile
-- ricontrolla TUTTE le cose da commentare, che adesso è un po un macello
-  - finire di commentare la funzione di lettura del chunk in page.c (la parte nel TODO, non ricordo che cosa faccia quel pezzo di codice)
-- fare questo readme
-  - architettura
-    - finire la parte che manca
+- RILEGGERE LE ISTRUZIONI
+- il controllo sui fork non sono sicuro che funzioni, but can't really be bothered
 - mettere la release su github
