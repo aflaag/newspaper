@@ -107,7 +107,3 @@ La struttura che viene utilizzata (anche all'interno della versione multi-proces
 ```
 
 La versione multi-processo è gestita spawnando 3 processi, il primo responsabile della lettura del file di input, il secondo responsabile della creazione della struttura dati, ed il terzo responsabile della stampa sul file di output. Il processo che spawna tali sottoprocessi è invece responsabile di gestire gli errori che i suoi processi figli potrebbero restituire, andando a terminare quelli ancora in esecuzione.
-
-## TODO list
-
-- mettere la release su github
