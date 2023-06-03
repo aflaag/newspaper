@@ -110,6 +110,4 @@ La versione multi-processo è gestita spawnando 3 processi, il primo responsabil
 
 ## TODO list
 
-- RILEGGERE LE ISTRUZIONI
-- il controllo sui fork non sono sicuro che funzioni, but can't really be bothered
 - mettere la release su github
