@@ -24,6 +24,12 @@ int read_input_file_par(int* pipefd_rs, FILE* input_file, int cols, int h_col, i
         char* line_chunk_content = calloc(w_col + 1, sizeof(char));
 
         if (line_chunk_content == NULL) {
+            int len = 0;
+
+            if (write(pipefd_rs[1], &len, sizeof(int)) == -1) {
+                return WRITE_ERROR;
+            }
+
             return ALLOC_ERROR;
         }
 
@@ -35,8 +41,21 @@ int read_input_file_par(int* pipefd_rs, FILE* input_file, int cols, int h_col, i
 
             if (end_value == ALLOC_ERROR || end_value == FSEEK_ERROR) {
                 free(line_chunk_content);
+
+                int len = 0;
+
+                if (write(pipefd_rs[1], &len, sizeof(int)) == -1) {
+                    return WRITE_ERROR;
+                }
+
                 return end_value;
             } else if (end_value == INVALID_INPUT) {
+                int len = 0;
+
+                if (write(pipefd_rs[1], &len, sizeof(int)) == -1) {
+                    return WRITE_ERROR;
+                }
+
                 return INVALID_INPUT;
             }
 
@@ -52,7 +71,13 @@ int read_input_file_par(int* pipefd_rs, FILE* input_file, int cols, int h_col, i
                 if (trunc_err != INVALID_INPUT) {
                     free(line_chunk_content);
                 }
-                
+
+                int len = 0;
+
+                if (write(pipefd_rs[1], &len, sizeof(int)) == -1) {
+                    return WRITE_ERROR;
+                }
+
                 return trunc_err;
             }
 
@@ -105,6 +130,12 @@ int read_input_file_par(int* pipefd_rs, FILE* input_file, int cols, int h_col, i
         }
 
         if (fseek(input_file, curr_pos + w_col, SEEK_SET)) {
+            int len = 0;
+
+            if (write(pipefd_rs[1], &len, sizeof(int)) == -1) {
+                return WRITE_ERROR;
+            }
+
             return FSEEK_ERROR;
         }
 
@@ -148,6 +179,12 @@ int send_page(Page* curr_page, int* pipefd_sw, int cols, int w_col, int spacing,
         char* joined_line = calloc(len, sizeof(char));
 
         if (joined_line == NULL) {
+            int len = 0;
+
+            if (write(pipefd_sw[1], &len, sizeof(int)) == -1) {
+                return WRITE_ERROR;
+            }
+
             return ALLOC_ERROR;
         }
 
@@ -158,6 +195,13 @@ int send_page(Page* curr_page, int* pipefd_sw, int cols, int w_col, int spacing,
 
             if (line_chunk_content == NULL) {
                 free(joined_line);
+
+                int len = 0;
+
+                if (write(pipefd_sw[1], &len, sizeof(int)) == -1) {
+                    return WRITE_ERROR;
+                }
+
                 return ALLOC_ERROR;
             }
             
@@ -212,7 +256,16 @@ int build_pages_par(int* pipefd_rs, int* pipefd_sw, int cols, int h_col, int w_c
     Page* curr_page = new_page(NULL);
     Page* prev_page = NULL;
 
+    // rappresenta la lunghezza del prossimo chunk da leggere nella pipe
+    int len;
+
     if (curr_page == NULL) {
+        len = 0;
+
+        if (write(pipefd_sw[1], &len, sizeof(int)) == -1) {
+            return WRITE_ERROR;
+        }
+
         return ALLOC_ERROR;
     }
 
@@ -226,11 +279,14 @@ int build_pages_par(int* pipefd_rs, int* pipefd_sw, int cols, int h_col, int w_c
     // dell'ultima pagina (corrente)
     bool is_new_empty_page = false;
 
-    // rappresenta la lunghezza del prossimo chunk da leggere nella pipe
-    int len;
-
     while (true) {
         if (read(pipefd_rs[0], &len, sizeof(int)) <= 0) {
+            len = 0;
+
+            if (write(pipefd_sw[1], &len, sizeof(int)) == -1) {
+                return WRITE_ERROR;
+            }
+
             return READ_ERROR;
         }
 
@@ -246,6 +302,12 @@ int build_pages_par(int* pipefd_rs, int* pipefd_sw, int cols, int h_col, int w_c
 
         // dalla pipe viene letto il prossimo chunk
         if (read(pipefd_rs[0], line_chunk_content, len) <= 0) {
+            len = 0;
+
+            if (write(pipefd_sw[1], &len, sizeof(int)) == -1) {
+                return WRITE_ERROR;
+            }
+
             return READ_ERROR;
         }
 
@@ -269,6 +331,13 @@ int build_pages_par(int* pipefd_rs, int* pipefd_sw, int cols, int h_col, int w_c
             if (append_line_and_advance(&curr_page, NULL) == NULL) {
                 free(line_chunk_content);
                 free(curr_page);
+
+                len = 0;
+
+                if (write(pipefd_sw[1], &len, sizeof(int)) == -1) {
+                    return WRITE_ERROR;
+                }
+
                 return ALLOC_ERROR;
             }
 
@@ -278,6 +347,13 @@ int build_pages_par(int* pipefd_rs, int* pipefd_sw, int cols, int h_col, int w_c
         if (append_line_chunk_and_advance((Line**) &curr_page->curr_line, line_chunk_content) == NULL) {
             free(line_chunk_content);
             free(curr_page);
+
+            len = 0;
+
+            if (write(pipefd_sw[1], &len, sizeof(int)) == -1) {
+                return WRITE_ERROR;
+            }
+
             return ALLOC_ERROR;
         }
 
@@ -307,6 +383,13 @@ int build_pages_par(int* pipefd_rs, int* pipefd_sw, int cols, int h_col, int w_c
             if (exit_code != PAGE_SUCCESS) {
                 free(prev_page);
                 free(curr_page);
+
+                len = 0;
+
+                if (write(pipefd_sw[1], &len, sizeof(int)) == -1) {
+                    return WRITE_ERROR;
+                }
+
                 return exit_code;
             }
 
@@ -315,6 +398,13 @@ int build_pages_par(int* pipefd_rs, int* pipefd_sw, int cols, int h_col, int w_c
             if (new_page == NULL) {
                 free(prev_page);
                 free(curr_page);
+
+                len = 0;
+
+                if (write(pipefd_sw[1], &len, sizeof(int)) == -1) {
+                    return WRITE_ERROR;
+                }
+
                 return ALLOC_ERROR;
             }
 
@@ -340,6 +430,12 @@ int build_pages_par(int* pipefd_rs, int* pipefd_sw, int cols, int h_col, int w_c
         free(curr_page);
 
         if (exit_code != PAGE_SUCCESS) {
+            len = 0;
+
+            if (write(pipefd_sw[1], &len, sizeof(int)) == -1) {
+                return WRITE_ERROR;
+            }
+
             return exit_code;
         }
     }
