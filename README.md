@@ -72,7 +72,7 @@ sh run_tests.sh
 
 ## Architettura
 
-La versione mono-processo del progrmama effettua la lettura dei caratteri, dal file di input, in "_chunk_" (ovvero, una riga di una colonna di una pagina); contemporaneamente, viene costruita una struttura dati per mantenere le informazioni delle pagine che vengono costruite, per poterle stampare correttamente sul file di output successivamente.
+La versione mono-processo del programma effettua la lettura dei caratteri, dal file di input, in "_chunk_" (ovvero, una riga di una colonna di una pagina); contemporaneamente, viene costruita una struttura dati per mantenere le informazioni delle pagine che vengono costruite, per poterle stampare correttamente sul file di output successivamente.
 
 La struttura che viene utilizzata (anche all'interno della versione multi-processo) è la seguente:
 
