@@ -295,7 +295,7 @@ int par_main(char* input_path, char* output_path, int cols, int h_col, int w_col
             return PIPE_ERROR;
         }
         
-        int exit_code = write_output_file_par(pipefd_sw, output_file, h_col, spacing, "\n%%%%%%\n\n");
+        int exit_code = write_output_file_par(pipefd_sw, output_file, h_col, "\n%%%%%%\n\n");
 
         exit_code = handle_exit_code(exit_code);
 
@@ -357,10 +357,10 @@ int par_main(char* input_path, char* output_path, int cols, int h_col, int w_col
 }
 
 int main(int argc, char* argv[]) {
-    int cols;
-    int h_col;
-    int w_col;
-    int spacing;
+    unsigned int cols;
+    unsigned int h_col;
+    unsigned int w_col;
+    unsigned int spacing;
     
     char* input_path;
     char* output_path;

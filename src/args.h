@@ -15,7 +15,7 @@
 #define ARGS_H
 
 // il messaggio di help
-static const char* HELP_MESSAGE = 
+static const char* HELP_MESSAGE =
     "Usage:\n"
     "\n"
     "    newspaper <INPUT_FILE> <OUTPUT_FILE> <COLS> <H_COL> <W_COL> <SPACING>\n"
@@ -43,6 +43,6 @@ bool is_file_empty(FILE* file);
 
 int find_flag(int argc, char* argv[], char* flag, char* flag_short);
 int set_index(int index, int flag_index);
-int parse_args(int argc, char* argv[], char** input_path, char** output_path, int* cols, int* h_col, int* w_col, int* spacing);
+int parse_args(int argc, char* argv[], char** input_path, char** output_path, unsigned int* cols, unsigned int* h_col, unsigned int* w_col, unsigned int* spacing);
 
 #endif

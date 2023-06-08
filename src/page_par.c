@@ -273,7 +273,6 @@ int build_pages_par(int* pipefd_rs, int* pipefd_sw, int cols, int h_col, int w_c
     int col_counter = 0;
 
     bool h_col_reached = false;
-    bool is_new_par = false;
 
     // questa flag viene resa 'true' se l'ultimo chunk termina sull'ultima colonna
     // dell'ultima pagina (corrente)
@@ -297,8 +296,6 @@ int build_pages_par(int* pipefd_rs, int* pipefd_sw, int cols, int h_col, int w_c
         }
 
         char* line_chunk_content = calloc(len, sizeof(char));
-
-        int end_value;
 
         // dalla pipe viene letto il prossimo chunk
         if (read(pipefd_rs[0], line_chunk_content, len) <= 0) {
@@ -358,10 +355,6 @@ int build_pages_par(int* pipefd_rs, int* pipefd_sw, int cols, int h_col, int w_c
         }
 
         set_line_chunks_head((Line*) curr_page->curr_line);
-
-        if (end_value == ENDED_TEXT) {
-            break;
-        }
 
         if (h_col_reached) {
             advance_curr_line(curr_page);
@@ -459,7 +452,7 @@ int build_pages_par(int* pipefd_rs, int* pipefd_sw, int cols, int h_col, int w_c
     I commenti in questa funzione sono ridotti al minimo, poiché sarebbero una sola ripetizione dei commenti
     che sono presenti nella funzione della versione monoprocesso.
 */
-int write_output_file_par(int* pipefd_sw, FILE* output_file, int h_col, int spacing, char* pages_separator) {
+int write_output_file_par(int* pipefd_sw, FILE* output_file, int h_col, char* pages_separator) {
     if (pipefd_sw == NULL || output_file == NULL || !strcmp(pages_separator, "\0")) {
         return INVALID_INPUT;
     }

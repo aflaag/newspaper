@@ -51,7 +51,7 @@ int set_index(int index, int flag_index) {
     La funzione prende in input i puntatori agli argomenti, ed effettua il parsing degli argomenti
     forniti in input al programma; consultare la documentazione per maggiori informazioni.
 */
-int parse_args(int argc, char* argv[], char** input_path, char** output_path, int* cols, int* h_col, int* w_col, int* spacing) {
+int parse_args(int argc, char* argv[], char** input_path, char** output_path, unsigned int* cols, unsigned int* h_col, unsigned int* w_col, unsigned int* spacing) {
     if (argc == 2) {
         if (!strcmp(argv[1], "--help") || !strcmp(argv[1], "-h")) {
             return PRINT_HELP;
@@ -66,13 +66,13 @@ int parse_args(int argc, char* argv[], char** input_path, char** output_path, in
     // se il numero di argomenti è minore di 7, oppure è pari a 7,
     // e tra gli argomenti era presente la flag, allora
     // non sono presenti argomenti a sufficienza
-    if (argc < 7 || argc == 7 && flag_index >= 1) {
+    if (argc < 7 || (argc == 7 && flag_index >= 1)) {
         return NOT_ENOUGH_ARGS;
     }
 
     // viceversa, se il numero di argomenti è superiore ad 8
     // (ovvero, 7 + l'opzionale flag)
-    if (argc > 8 || argc == 8 && flag_index < 1) {
+    if (argc > 8 || (argc == 8 && flag_index < 1)) {
         return TOO_MANY_ARGS;
     }
 

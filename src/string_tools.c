@@ -34,7 +34,7 @@ bool is_char(char character) {
     la stringa in input.
 */
 void pad_string(char* string, unsigned int start, unsigned int end, char character) {
-    for (int i = start; i < end; i++) {
+    for (unsigned int i = start; i < end; i++) {
         string[i] = character;
     }
 }
@@ -404,7 +404,7 @@ char* string_realloc(char* string, int new_size) {
 int powi(int n, unsigned int exp) {
     int tot = 1;
 
-    for (int i = 0; i < exp; i++) {
+    for (unsigned int i = 0; i < exp; i++) {
         tot *= n;
     }
 

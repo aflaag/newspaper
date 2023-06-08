@@ -176,7 +176,7 @@ int read_chunk(FILE* input_file, char** line_chunk_content, int* w_col, long* ba
         // necessario inizalizzare la procedura di riconoscimento del paragrafo; si noti che bisogna anche
         // controllare che non ci si trovi sul primo carattere della prima colonna della pagina corrente,
         // altrimenti viene inserita una riga vuota all'inizio della pagina
-        if (curr_char == '\n' && (!is_first_line_first_col || is_first_line_first_col && is_text_started)) {
+        if (curr_char == '\n' && (!is_first_line_first_col || (is_first_line_first_col && is_text_started))) {
             // si noti che va letto il carattere in next_pos, altrimenti si
             // salterebbe un carattere, letto da fgetc in next_char
             fseek(input_file, next_pos, SEEK_SET);
