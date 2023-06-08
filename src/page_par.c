@@ -511,7 +511,7 @@ int write_output_file_par(int* pipefd_sw, FILE* output_file, int h_col, char* pa
         // se questa era l'ultima riga della pagina, e quella corrente non è l'ultima pagina
         // (si veda il controllo precedente), allora è possibile inserire il separatore tra pagine
         if (lines_counter == h_col) {
-            fprintf(output_file, pages_separator);
+            fprintf(output_file, "%s", pages_separator);
 
             lines_counter = 0;
         }

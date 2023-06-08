@@ -295,7 +295,7 @@ int par_main(char* input_path, char* output_path, int cols, int h_col, int w_col
             return PIPE_ERROR;
         }
         
-        int exit_code = write_output_file_par(pipefd_sw, output_file, h_col, "\n%%%%%%\n\n");
+        int exit_code = write_output_file_par(pipefd_sw, output_file, h_col, "\n%%%\n\n");
 
         exit_code = handle_exit_code(exit_code);
 
