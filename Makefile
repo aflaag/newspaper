@@ -1,4 +1,4 @@
-CC := gcc
+CC := gcc -Wall -Wextra
 
 TARGET := newspaper
 

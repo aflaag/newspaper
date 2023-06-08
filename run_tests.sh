@@ -72,7 +72,6 @@ run_test sample_inputs/example4_in.txt expected_outputs/example4_out.txt 200 5 1
 run_test sample_inputs/example5_in.txt expected_outputs/example5_out.txt 200 5 15 5 true
 run_test sample_inputs/dante_in.txt expected_outputs/dante_out.txt 5 40 20 5 true
 run_test sample_inputs/ionut_in.txt expected_outputs/ionut_out.txt 3 40 60 10 true
-run_test sample_inputs/ionut_in.txt expected_outputs/ionut_out.txt 3 40 60 10 true
 run_test sample_inputs/ionut2_in.txt expected_outputs/ionut2_out.txt 3 40 60 10 true
 run_test sample_inputs/ionut3_in.txt expected_outputs/ionut3_out.txt 3 40 60 10 true
 run_test sample_inputs/ionut4_in.txt expected_outputs/ionut4_out.txt 3 40 60 10 true
