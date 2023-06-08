@@ -1,4 +1,4 @@
-CC := gcc -Wall -Wextra
+CC := gcc -Wall -Wextra -Wno-unused-variable
 
 TARGET := newspaper
 
